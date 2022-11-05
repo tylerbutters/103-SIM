@@ -23,33 +23,33 @@ using namespace stdprefixes;
 
 void printMainMenu();
 
-struct UserInfo {
+struct AccountDetails {
 	int accountType;
 	string username;
 	string password;
 };
 
-string g_userDatabaseFile = ("user-database.csv");
+string g_accountsFile = ("user-database.csv");
 
 void drawLine() {
 	// just draws line
 	cout << "---------------------------------------------------------------------" << '\n';
 }
 
-void addUserToDatabase(int accountType, string username, string password) {
-	fstream userDatabase(g_userDatabaseFile, ios::in | ios::app);
+void addUserToDatabase(AccountDetails userRegistrationDetails) {
+	fstream AccountsFile(g_accountsFile, ios::in | ios::app);
 
-	if (!userDatabase.is_open()) {
+	if (!AccountsFile.is_open()) {
 		throw std::runtime_error("Warning file is not open");
 	}
 
 	// writes user input to file
-	userDatabase << username << "," << password << "," << accountType << '\n';
-	userDatabase.close();
+	AccountsFile << userRegistrationDetails.username << "," << userRegistrationDetails.password << "," << userRegistrationDetails.accountType << '\n';
+	AccountsFile.close();
 }
 
-UserInfo getRegistrationDetailsFromUser() {
-	UserInfo userRegistrationDetails;
+AccountDetails getRegistrationDetailsFromUser() {
+	AccountDetails userRegistrationDetails;
 
 	cout << '\n';
 	drawLine();
@@ -92,93 +92,92 @@ UserInfo getRegistrationDetailsFromUser() {
 
 void registerNewUserThenReturn() {
 	// assigns new user info into struct
-	UserInfo userRegistrationDetails = getRegistrationDetailsFromUser();
+	AccountDetails userRegistrationDetails = getRegistrationDetailsFromUser();
 
-	addUserToDatabase(userRegistrationDetails.accountType, userRegistrationDetails.username, userRegistrationDetails.password);
+	addUserToDatabase(userRegistrationDetails);
 
 	cout << '\n' << "Account created!" << '\n';
 	printMainMenu();
 }
 
-bool authenticateUser(vector<UserInfo> userList, UserInfo userInfoToAuthenticate) {
-	// goes through each row of user vector
-	for (UserInfo user : userList) {
-		//checks if inputed details match in database
-		if (userInfoToAuthenticate.username == user.username && userInfoToAuthenticate.password == user.password && userInfoToAuthenticate.accountType == user.accountType) {
+bool authenticateUser(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
+	// loops through each row of file and vector
+	for (AccountDetails userLoginDetails : listOfAccounts) {
+		// checks if inputed details match in database
+		if (userInfoToAuthenticate.username == userLoginDetails.username && userInfoToAuthenticate.password == userLoginDetails.password && userInfoToAuthenticate.accountType == userLoginDetails.accountType) {
 			return true;
 		}
 	}
-	// databaseContent.clear();
+	listOfAccounts.clear();
 
+	// if authentication fails
 	return false;
 }
 
-UserInfo getLoginDetailsFromUser() {
-	UserInfo loginDetailsFromUser;
+AccountDetails getLoginDetailsFromUser() {
+	AccountDetails userLoginDetails;
 
 	cout << '\n' << "Select account type" << '\n';
 	cout << '\n' << "[STUDENT = 1] [PARENT = 2] [TEACHER = 3] [ADMIN = 4] [BACK = 0]" << '\n';
-	cin >> loginDetailsFromUser.accountType;
+	cin >> userLoginDetails.accountType;
 
 	// back to main menu
-	if (loginDetailsFromUser.accountType == 0) {
+	if (userLoginDetails.accountType == 0) {
 		printMainMenu();
 	}
 
 	cout << '\n' << "Enter your username: ";
-	cin >> loginDetailsFromUser.username;
+	cin >> userLoginDetails.username;
 	cout << "Enter your password: ";
-	cin >> loginDetailsFromUser.password;
+	cin >> userLoginDetails.password;
 
-	return loginDetailsFromUser;
+	return userLoginDetails;
 }
 
-vector<UserInfo> loadAllUsers() {
-	string databaseRow;
-	string databaseCell;
-	//vector<string> vectorRow;
-	vector<UserInfo> userList;
+vector<AccountDetails> loadAllUsers() {
+	string fileRow;
+	string fileCell;
+	vector<AccountDetails> listOfAccounts;
 
-	fstream userDatabase;
+	fstream AccountsFile;
 
-	userDatabase.open(g_userDatabaseFile, ios::in | ios::app);
+	AccountsFile.open(g_accountsFile, ios::in | ios::app);
 
-	if (!userDatabase.is_open()) {
+	if (!AccountsFile.is_open()) {
 		throw std::runtime_error("Warning file is not open");
 	}
 
-	// loops through each row of database file
-	while (getline(userDatabase, databaseRow, '\n')) {
-		UserInfo info;
-		//vectorRow.clear();
-		stringstream stream(databaseRow);
+	// loops through each row of file
+	while (getline(AccountsFile, fileRow, '\n')) {
+		stringstream stream(fileRow);
+		AccountDetails details;
 
-		// loops through each cell of file, adds to struct
+		// loops through each cell of file and adds to struct
 		int i = 1;
-		while (getline(stream, databaseCell, ',')) {
+		while (getline(stream, fileCell, ',')) {
 			if (i == 1) {
-				info.username = databaseCell;
+				details.username = fileCell;
 			}
 			if (i == 2) {
-				info.password = databaseCell;
+				details.password = fileCell;
 			}
 			if (i == 3) {
-				info.accountType = std::stoi(databaseCell);
+				details.accountType = std::stoi(fileCell);
 			}
 
 			i++;
 		}
-
-		userList.push_back(info);
+		// adds populated struct to vector
+		listOfAccounts.push_back(details);
 	}
-	userDatabase.close();
+	AccountsFile.close();
 
-	return userList;
+	return listOfAccounts;
 }
 
 void getLoginDetailsFromUserAndAuthenticate() {
 	int loginAttempts = 3;
-	vector<UserInfo> allUsers = loadAllUsers();
+	vector<AccountDetails> listOfAccounts = loadAllUsers();
 
 	cout << '\n';
 	drawLine();
@@ -186,8 +185,10 @@ void getLoginDetailsFromUserAndAuthenticate() {
 	drawLine();
 
 	while (loginAttempts > 0) {
-		UserInfo userLoginDetails = getLoginDetailsFromUser();
-		bool isAuthenticated = authenticateUser(allUsers, userLoginDetails);
+		//gets user input
+		AccountDetails userLoginDetails = getLoginDetailsFromUser();
+		//authenticates details
+		bool isAuthenticated = authenticateUser(listOfAccounts, userLoginDetails);
 
 		if (isAuthenticated) {
 			return;
@@ -205,7 +206,7 @@ void getLoginDetailsFromUserAndAuthenticate() {
 }
 
 int getMainMenuChoiceFromUser() {
-	int userChoice;
+	int menuChoice;
 
 	cout << '\n';
 	drawLine();
@@ -214,9 +215,9 @@ int getMainMenuChoiceFromUser() {
 
 	cout << '\n' << "Please input the number to the following option" << '\n';
 	cout << '\n' << "[LOGIN = 1] [REGISTER = 2] [EXIT = 0]" << '\n';
-	cin >> userChoice;
+	cin >> menuChoice;
 
-	return userChoice;
+	return menuChoice;
 }
 
 void printMainMenu() {
