@@ -24,7 +24,7 @@ using namespace stdprefixes;
 void printMainMenu();
 
 struct AccountDetails {
-	int accountType;
+	int accountType = 0;
 	string username;
 	string password;
 };
@@ -36,7 +36,7 @@ void drawLine() {
 	cout << "---------------------------------------------------------------------" << '\n';
 }
 
-void addUserToDatabase(AccountDetails userRegistrationDetails) {
+void addUserToDatabase(AccountDetails &userRegistrationDetails) {
 	fstream AccountsFile(g_accountsFile, ios::in | ios::app);
 
 	if (!AccountsFile.is_open()) {
@@ -100,7 +100,7 @@ void registerNewUserThenReturn() {
 	printMainMenu();
 }
 
-bool authenticateUser(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
+bool authenticateUser(vector<AccountDetails> &listOfAccounts, AccountDetails &userInfoToAuthenticate) {
 	// loops through each row of file and vector
 	for (AccountDetails userLoginDetails : listOfAccounts) {
 		// checks if inputed details match in database
