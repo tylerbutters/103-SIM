@@ -1,3 +1,4 @@
-main/Debug
-.vs*
-main/.vs*
+student-information-system/x64/Debug
+student-information-system/.vs*
+print-file/x64/Debug
+print-file/.vs*
