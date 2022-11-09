@@ -23,6 +23,8 @@ namespace stdprefixes {
 using namespace stdprefixes;
 
 string g_studentsFile = "student-database.csv";
+int g_columnWidth = 19;
+vector<string> g_columnNames = { "[NAME]", "[SURNAME]", "[YEAR]", "[FATHER]", "[MOTHER]", "[CLASS NO.]", "[TEACHER]", "[REPORT]" };
 
 struct StudentDetails {
 	string firstName;
@@ -59,25 +61,25 @@ vector<StudentDetails> loadAllStudents() {
 			if (i == 1) {
 				student.firstName = fileCell;
 			}
-			if (i == 2) {
+			else if (i == 2) {
 				student.lastName = fileCell;
 			}
-			if (i == 3) {
+			else if (i == 3) {
 				student.yearNum = stoi(fileCell);
 			}
-			if (i == 4) {
+			else if (i == 4) {
 				student.fatherName = fileCell;
 			}
-			if (i == 5) {
+			else if (i == 5) {
 				student.motherName = fileCell;
 			}
-			if (i == 6) {
+			else if (i == 6) {
 				student.classNum = stoi(fileCell);
 			}
-			if (i == 7) {
+			else if (i == 7) {
 				student.teacherName = fileCell;
 			}
-			if (i == 8) {
+			else if (i == 8) {
 				student.reportNum = stoi(fileCell);
 			}
 
@@ -92,7 +94,7 @@ vector<StudentDetails> loadAllStudents() {
 }
 
 string title(string inputString) {
-	int columnLength = 14;
+	int columnLength = g_columnWidth + 1;
 	string outputString;
 
 	for (int i = 0; i < inputString.length(); i++) {
@@ -109,8 +111,8 @@ string title(string inputString) {
 }
 
 string column(string inputString) {
-	int columnLength = 13;
-	string outputString;
+	int columnLength = g_columnWidth;
+	string outputString  ;
 
 	for (int i = 0; i < inputString.length(); i++) {
 		outputString += inputString[i];
@@ -125,16 +127,23 @@ string column(string inputString) {
 	return outputString += "|";
 }
 
+string generateLine() {
+	string outputString;
+	for (int i = 0; i < g_columnNames.size(); i++) {
+		for (int i = 0; i < g_columnWidth; i++) {
+			outputString += "_";
+		}
+		outputString+= "_";
+	}
+	return outputString;
+}
+
 void outputAllStudents(vector<StudentDetails>& listOfStudents) {
-	cout << title("[NAME]")
-		<< title("[SURNAME]")
-		<< title("[YEAR]")
-		<< title("[FATHER]")
-		<< title("[MOTHER]")
-		<< title("[CLASS NO.]")
-		<< title("[TEACHER]")
-		<< title("[REPORT]") << '\n'
-		<< "________________________________________________________________________________________________________________" << '\n';
+	for (int i = 0; i < g_columnNames.size(); i++) {
+		cout << title(g_columnNames[i]);
+			
+	}
+	cout << '\n'<<generateLine() << '\n';
 
 	//for each row in filecontent
 	for (StudentDetails student : listOfStudents) {
