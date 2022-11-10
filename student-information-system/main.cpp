@@ -32,6 +32,10 @@ struct AccountDetails {
 	string username;
 	string password;
 	int linkID = 0;
+
+	bool isValid() {
+		return username != "";
+	};
 };
 
 struct StudentDetails {
@@ -286,27 +290,27 @@ void studentMenuOptions(int accountlinkID) {
 
 }
 
-bool linkAccount(AccountDetails& userAccount, vector<StudentDetails>& listOfstudents) {
-	if (userAccount.accountType != 1) {
-		cout << "not student";
-		return true;
-	}
-
-	for (StudentDetails student : listOfstudents) {
-		if (userAccount.linkID == student.linkID) {
-			return true;
-		}
-	}
-}
+//bool linkAccount(AccountDetails& userAccount, vector<StudentDetails>& listOfStudents) {
+//	if (userAccount.accountType != 1) {
+//		cout << "not student";
+//		return true;
+//	}
+//
+//	for (StudentDetails student : listOfStudents) {
+//		if (userAccount.linkID == student.linkID) {
+//			return true;
+//		}
+//	}
+//}
 
 void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
 	bool isLinked = false;
 
 	vector<StudentDetails> listOfstudents = loadStudents();
 
-	while (isLinked == false) {
-		isLinked = linkAccount(userAccount, listOfstudents);
-	}
+	//while (isLinked == false) {
+	//	isLinked = linkAccount(userAccount, listOfstudents);
+	//}
 
 	switch (userAccount.accountType) {
 	case 1:
@@ -326,21 +330,18 @@ void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
 //____________________________________________________________________________________________________________________________
 //____________________________________________________________________________________________________________________________
 
-bool authenticateDetails(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
+AccountDetails authenticateUser(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
+	AccountDetails nothing;
 	// loops through each row of file and vector
 	for (AccountDetails account : listOfAccounts) {
 		// checks if inputed details match in database
 		if (userInfoToAuthenticate.username == account.username && userInfoToAuthenticate.password == account.password) {
-			userInfoToAuthenticate.linkID = account.linkID;
-			userInfoToAuthenticate.accountType = account.accountType;
-			linkIDThenOpenAccountMenu(userInfoToAuthenticate);
-			cout << "returned!";
-			exit(0);
+			return account;
 		}
 	}
 	listOfAccounts.clear();
 	// if authentication fails
-	return false;
+	return nothing;
 }
 
 AccountDetails getLoginDetailsFromUser() {
@@ -362,23 +363,26 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	drawLine();
 	cout << "Enter your details";
 
+	AccountDetails authenticatedUserAccountDetails;
+
 	vector<AccountDetails> listOfAccounts = loadAccounts();
+
 
 	while (loginAttempts > 0) {
 		//gets user input
-		AccountDetails userLoginDetails = getLoginDetailsFromUser();
+		AccountDetails userInputtedAccountDetails = getLoginDetailsFromUser();
 		//authenticates details
-		bool isAuthenticated = authenticateDetails(listOfAccounts, userLoginDetails);
+		authenticatedUserAccountDetails = authenticateUser(listOfAccounts, userInputtedAccountDetails);
+		if (authenticatedUserAccountDetails.isValid()) {
+			return authenticatedUserAccountDetails;
+		}
 
 		loginAttempts--;
 		cout << '\n' << "Wrong username, password or associated account type";
 		cout << '\n' << loginAttempts << " attempts left";
 	}
 
-	if (loginAttempts == 0) {
-		cout << '\n' << "Shutting down application..." << '\n';
-		exit(0);
-	}
+	return authenticatedUserAccountDetails;
 }
 
 int getMainMenuChoiceFromUser() {
@@ -400,13 +404,16 @@ void mainMenuOptions() {
 
 	switch (getMainMenuChoiceFromUser()) {
 	case 1:
-		//getLoginDetailsFromUserAndAuthenticate();
-		getLoginDetailsFromUserAndAuthenticate();
+		userAccountDetails = getLoginDetailsFromUserAndAuthenticate();
+		if (!userAccountDetails.isValid()) {
+			cout << "Shutting down application..." << '\n';
+			return;
+		}
+		linkIDThenOpenAccountMenu(userAccountDetails);
 		break;
 	case 0:
-		cout << "Shutting down application..." << '\n';
-		exit(0);
-		break;
+		cout << '\n' << "Shutting down application..." << '\n';
+		return;
 	default:
 		cout << '\n' << "Please choose one of the options";
 		mainMenuOptions();
