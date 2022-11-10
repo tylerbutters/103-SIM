@@ -35,21 +35,25 @@ struct AccountDetails {
 };
 
 struct StudentDetails {
+	int linkID = 0;
 	string firstName;
 	string lastName;
 	int yearNum = 0;
 	string fatherName;
 	string motherName;
-	int classNum = 0;
 	string teacherName;
-	int reportNum = 0;
-	int linkID = 0;
+	int mathsGrade = 0;
+	int englishGrade = 0;
+	int scienceGrade = 0;
+	int chemistryGrade = 0;
+	int historyGrade = 0;
+	int overallGrade = 0;
 };
 
 string g_accountsFile = ("user-accounts.csv");
 string g_studentsFile = ("student-database.csv");
-int g_columnWidth = 13;
-vector<string> g_columnNames = { "[NAME]", "[SURNAME]", "[YEAR]", "[FATHER]", "[MOTHER]", "[CLASS NO.]", "[TEACHER]", "[REPORT]" };
+int g_columnWidth = 10;
+vector<string> g_columnNames = { "[SURNAME]", "[NAME]", "[YEAR]", "[FATHER]", "[MOTHER]", "[TEACHER]", "[MATHS]","[ENGLISH]","[SCIENCE]","[CHEM]","[HISTORY]","[OVERALL]" };
 
 void drawLine() {
 	// just draws line
@@ -122,35 +126,46 @@ vector<StudentDetails> loadStudents() {
 		// loops through each cell of file and adds to struct
 		int i = 0;
 		while (getline(stream, fileCell, ',')) {
-			if (i == 0) {
+			switch (i) {
+			case 0:
 				student.linkID = stoi(fileCell);
-			}
-			else if (i == 1) {
-				student.firstName = fileCell;
-			}
-			else if (i == 2) {
+				break;
+			case 1:
 				student.lastName = fileCell;
-			}
-			else if (i == 3) {
+				break;
+			case 2:
+				student.firstName = fileCell;
+				break;
+			case 3:
 				student.yearNum = stoi(fileCell);
-			}
-			else if (i == 4) {
+				break;
+			case 4:
 				student.fatherName = fileCell;
-			}
-			else if (i == 5) {
+				break;
+			case 5:
 				student.motherName = fileCell;
-			}
-			else if (i == 6) {
-				student.classNum = stoi(fileCell);
-			}
-			else if (i == 7) {
+				break;
+			case 6:
 				student.teacherName = fileCell;
-			}
-			else if (i == 8) {
-				student.reportNum = stoi(fileCell);
-			}
-			else if (i == 9) {
-				student.reportNum = stoi(fileCell);
+				break;
+			case 7:
+				student.mathsGrade = stoi(fileCell);
+				break;
+			case 8:
+				student.englishGrade = stoi(fileCell);
+				break;
+			case 9:
+				student.scienceGrade = stoi(fileCell);
+				break;
+			case 10:
+				student.chemistryGrade = stoi(fileCell);
+				break;
+			case 11:
+				student.historyGrade = stoi(fileCell);
+				break;
+			case 12:
+				student.overallGrade = stoi(fileCell);
+				break;
 			}
 
 			i++;
@@ -183,17 +198,19 @@ vector<AccountDetails> loadAccounts() {
 		// loops through each cell of file and adds to struct
 		int i = 1;
 		while (getline(stream, fileCell, ',')) {
-			if (i == 1) {
+			switch (i) {
+			case 1:
 				details.username = fileCell;
-			}
-			else if (i == 2) {
+				break;
+			case 2:
 				details.password = fileCell;
-			}
-			else if (i == 3) {
+				break;
+			case 3:
 				details.accountType = stoi(fileCell);
-			}
-			else if (i == 4) {
+				break;
+			case 4:
 				details.linkID = stoi(fileCell);
+				break;
 			}
 
 			i++;
@@ -217,14 +234,18 @@ void printPersonalDetails(StudentDetails student) {
 	cout << '\n' << generateLine() << '\n';
 
 	//for each row in filecontent
-	cout << column(student.firstName)
-		<< column(student.lastName)
+	cout << column(student.lastName)
+		<< column(student.firstName)
 		<< column(to_string(student.yearNum))
 		<< column(student.fatherName)
 		<< column(student.motherName)
-		<< column(to_string(student.classNum))
 		<< column(student.teacherName)
-		<< column(to_string(student.reportNum)) << '\n';
+		<< column(to_string(student.mathsGrade))
+		<< column(to_string(student.englishGrade))
+		<< column(to_string(student.scienceGrade))
+		<< column(to_string(student.chemistryGrade))
+		<< column(to_string(student.historyGrade))
+		<< column(to_string(student.overallGrade)) << '\n';
 }
 
 void findStudentThenPrintDetails(int linkID) {
@@ -246,7 +267,7 @@ int getStudentMenuChoice(int linkID) {
 
 	cout << "Heres your information" << '\n';
 	findStudentThenPrintDetails(linkID);
-	cout << '\n' << "[LOG OUT = 0]";
+	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]";
 	cin >> userChoice;
 
 	return userChoice;
@@ -258,7 +279,11 @@ void studentMenuOptions(int accountlinkID) {
 	switch (getStudentMenuChoice(linkID)) {
 	case 0:
 		mainMenuOptions();
+	case 1:
+		//changeLoginDetails();
+		break;
 	}
+
 }
 
 bool linkAccount(AccountDetails& userAccount, vector<StudentDetails>& listOfstudents) {
@@ -314,7 +339,6 @@ bool authenticateDetails(vector<AccountDetails> listOfAccounts, AccountDetails u
 		}
 	}
 	listOfAccounts.clear();
-
 	// if authentication fails
 	return false;
 }
@@ -322,15 +346,13 @@ bool authenticateDetails(vector<AccountDetails> listOfAccounts, AccountDetails u
 AccountDetails getLoginDetailsFromUser() {
 	AccountDetails userLoginDetails;
 
-	cout << '\n' << "Enter your username: ";
+	cout << '\n' << "Username: ";
 	cin >> userLoginDetails.username;
-	cout << "Enter your password: ";
+	cout << "Password: ";
 	cin >> userLoginDetails.password;
 
 	return userLoginDetails;
 }
-
-
 
 AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	int loginAttempts = 3;
@@ -338,6 +360,7 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	drawLine();
 	cout << "LOGIN";
 	drawLine();
+	cout << "Enter your details";
 
 	vector<AccountDetails> listOfAccounts = loadAccounts();
 
@@ -346,11 +369,6 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 		AccountDetails userLoginDetails = getLoginDetailsFromUser();
 		//authenticates details
 		bool isAuthenticated = authenticateDetails(listOfAccounts, userLoginDetails);
-
-		//if (isAuthenticated) {
-		//	cout << '\n' << "Logged in!" << '\n';
-		//	return userLoginDetails;
-		//}
 
 		loginAttempts--;
 		cout << '\n' << "Wrong username, password or associated account type";
@@ -362,8 +380,6 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 		exit(0);
 	}
 }
-
-
 
 int getMainMenuChoiceFromUser() {
 	int menuChoice;
