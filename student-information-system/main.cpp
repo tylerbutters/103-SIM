@@ -226,6 +226,78 @@ vector<AccountDetails> loadAccounts() {
 //____________________________________________________________________________________________________________________________
 //____________________________________________________________________________________________________________________________
 
+void changeLoginDetails(AccountDetails userLoginDetails) {
+	string tempAccountsFile = "temp-" + g_accountsFile;
+
+	char* fileNamePtr = &g_accountsFile[0];
+	char* tempFileNamePtr = &tempAccountsFile[0];
+
+	// creating an instance of the file stream
+	fstream fileIn(g_accountsFile, ios::in);
+	if (!fileIn.is_open()) {
+		cout << "Warning no file is open\n\n"; // out putting warning
+		return; // end execution of the function
+	}
+
+	fstream fileOut(tempAccountsFile, ios::out); // initialised content assigned from a read file
+	if (!fileOut.is_open()) {
+		cout << "Warning no file is open\n\n"; // out putting warning
+		return; // end execution of the function
+	}
+	vector<AccountDetails> listOfAccounts = loadAccounts();
+	vector<AccountDetails> newListOfAccounts;
+
+	//check to see if file has content
+	//if (fileContent.size() == 0) {
+	//	cout << "Warning file contains no data\n\n";
+	//	fileIn.close(); // close input file
+	//	fileOut.close(); // close the out put file
+	//	remove(tempFileNamePtr); // removing the output file
+	//	return; // end execution of function
+	//}
+	AccountDetails replacementDetails;
+
+	cout << '\n' << "Current login details" << '\n';
+	cout << '\n' << "Username: " << userLoginDetails.username << '\n';
+	cout << "Password: " << userLoginDetails.password << '\n';
+	cout << '\n' << "Enter new login details" << '\n';
+	cout << '\n' << "Username: ";
+	cin >> replacementDetails.username;
+	cout << "Password: ";
+	cin >> replacementDetails.password;
+
+	for (AccountDetails student : listOfAccounts) {
+		cout << student.username;
+		if (student.username == userLoginDetails.username && student.password == userLoginDetails.password) {
+			cout << "continue through\n\n";
+			continue;
+		}
+		else {
+
+			newListOfAccounts.push_back(student); // push back to our replacment content vector
+		}
+	}
+
+	// loop through replacement content display new data
+	//cout << "Data witin new file:\n";
+	for (AccountDetails account : newListOfAccounts) {
+		fileOut << account.username << "," << account.password << "," << account.accountType << "," << account.linkID << '\n';
+	}
+
+	fileOut << replacementDetails.username << "," << replacementDetails.password << "," << userLoginDetails.accountType << "," << userLoginDetails.linkID << '\n';
+
+	// close files
+	fileIn.close();
+	fileOut.close();
+	remove(fileNamePtr); // deleting original file
+	rename(tempFileNamePtr, fileNamePtr);
+
+	return;
+}
+
+//____________________________________________________________________________________________________________________________
+//____________________________________________________________________________________________________________________________
+
 void printPersonalDetails(StudentDetails student) {
 	cout << '\n';
 	for (int i = 0; i < g_columnNames.size(); i++) {
@@ -273,15 +345,17 @@ int getStudentMenuChoice(int linkID) {
 	return userChoice;
 }
 
-void studentMenuOptions(int accountlinkID) {
-	int linkID = accountlinkID;
+void studentMenuOptions(AccountDetails userAccount) {
+	int linkID = userAccount.linkID;
 
 	switch (getStudentMenuChoice(linkID)) {
 	case 0:
 		mainMenuOptions();
 	case 1:
-		//changeLoginDetails();
+		changeLoginDetails(userAccount);
 		break;
+	default:
+		studentMenuOptions(userAccount);
 	}
 
 }
@@ -310,7 +384,7 @@ void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
 
 	switch (userAccount.accountType) {
 	case 1:
-		studentMenuOptions(userAccount.linkID);
+		studentMenuOptions(userAccount);
 	case 2:
 		//parent
 		break;
@@ -326,7 +400,7 @@ void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
 //____________________________________________________________________________________________________________________________
 //____________________________________________________________________________________________________________________________
 
-bool authenticateDetails(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
+void authenticateDetails(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
 	// loops through each row of file and vector
 	for (AccountDetails account : listOfAccounts) {
 		// checks if inputed details match in database
@@ -340,7 +414,7 @@ bool authenticateDetails(vector<AccountDetails> listOfAccounts, AccountDetails u
 	}
 	listOfAccounts.clear();
 	// if authentication fails
-	return false;
+	return;
 }
 
 AccountDetails getLoginDetailsFromUser() {
@@ -368,7 +442,7 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 		//gets user input
 		AccountDetails userLoginDetails = getLoginDetailsFromUser();
 		//authenticates details
-		bool isAuthenticated = authenticateDetails(listOfAccounts, userLoginDetails);
+		authenticateDetails(listOfAccounts, userLoginDetails);
 
 		loginAttempts--;
 		cout << '\n' << "Wrong username, password or associated account type";
