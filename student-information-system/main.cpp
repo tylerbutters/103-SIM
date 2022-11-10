@@ -23,72 +23,144 @@ namespace stdprefixes {
 
 using namespace stdprefixes;
 
-void printMainMenu();
+void mainMenuOptions();
 int main();
+//vector<StudentDetails> loadStudents();
 
 struct AccountDetails {
 	int accountType = 0;
 	string username;
 	string password;
+	int linkID = 0;
+};
+
+struct StudentDetails {
+	string firstName;
+	string lastName;
+	int yearNum = 0;
+	string fatherName;
+	string motherName;
+	int classNum = 0;
+	string teacherName;
+	int reportNum = 0;
+	int linkID = 0;
 };
 
 string g_accountsFile = ("user-accounts.csv");
+string g_studentsFile = ("student-database.csv");
+int g_columnWidth = 13;
+vector<string> g_columnNames = { "[NAME]", "[SURNAME]", "[YEAR]", "[FATHER]", "[MOTHER]", "[CLASS NO.]", "[TEACHER]", "[REPORT]" };
 
 void drawLine() {
 	// just draws line
-	cout << "---------------------------------------------------------------------" << '\n';
+	cout << '\n' << "---------------------------------------------------------------------" << '\n';
 }
 
-void printStudentDetails(int accountType) {
+string title(string inputString) {
+	int columnLength = g_columnWidth + 1;
+	string outputString;
 
-}
-
-void StudentAccountMenu() {
-	int userChoice;
-	int accountType = 1;
-
-	drawLine();
-	cout << "STUDENT";
-	drawLine();
-
-	cout << "Heres your information" << '\n';
-	printStudentDetails(accountType);
-	cout << "[LOG OUT = 0]";
-	cin >> userChoice;
-
-	switch (userChoice) {
-	case 0:
-		printMainMenu();
+	for (int i = 0; i < inputString.length(); i++) {
+		outputString += inputString[i];
+		columnLength--;
 	}
+
+	while (columnLength != 0) {
+		outputString += " ";
+		columnLength--;
+	}
+
+	return outputString;
 }
 
-void switchAccount(AccountDetails userAccountDetails) {
+string column(string inputString) {
+	int columnLength = g_columnWidth;
+	string outputString;
 
+	for (int i = 0; i < inputString.length(); i++) {
+		outputString += inputString[i];
+		columnLength--;
+	}
+
+	while (columnLength != 0) {
+		outputString += " ";
+		columnLength--;
+	}
+
+	return outputString += "|";
 }
 
-bool authenticateUser(vector<AccountDetails> &listOfAccounts, AccountDetails &userInfoToAuthenticate) {
-	// loops through each row of file and vector
-	for (AccountDetails userLoginDetails : listOfAccounts) {
-		// checks if inputed details match in database
-		if (userInfoToAuthenticate.username == userLoginDetails.username && userInfoToAuthenticate.password == userLoginDetails.password) {
-			return true;
+string generateLine() {
+	string outputString;
+	for (int i = 0; i < g_columnNames.size(); i++) {
+		for (int i = 0; i < g_columnWidth; i++) {
+			outputString += "_";
 		}
+		outputString += "_";
 	}
-	listOfAccounts.clear();
-
-	// if authentication fails
-	return false;
+	return outputString;
 }
 
-AccountDetails getLoginDetailsFromUser() {
-	AccountDetails userLoginDetails;
+vector<StudentDetails> loadStudents() {
+	string fileRow;
+	string fileCell;
+	vector<StudentDetails> listOfAccounts;
 
-	cout << '\n' << "Enter your username: ";
-	cin >> userLoginDetails.username;
-	cout << "Enter your password: ";
-	cin >> userLoginDetails.password;
+	fstream AccountsFile;
 
-	return userLoginDetails;
+	AccountsFile.open(g_studentsFile, ios::in | ios::app);
+
+	if (!AccountsFile.is_open()) {
+		throw std::runtime_error("Warning file is not open");
+	}
+
+	// loops through each row of file
+	while (getline(AccountsFile, fileRow, '\n')) {
+		stringstream stream(fileRow);
+		StudentDetails student;
+
+		// loops through each cell of file and adds to struct
+		int i = 0;
+		while (getline(stream, fileCell, ',')) {
+			if (i == 0) {
+				student.linkID = stoi(fileCell);
+			}
+			else if (i == 1) {
+				student.firstName = fileCell;
+			}
+			else if (i == 2) {
+				student.lastName = fileCell;
+			}
+			else if (i == 3) {
+				student.yearNum = stoi(fileCell);
+			}
+			else if (i == 4) {
+				student.fatherName = fileCell;
+			}
+			else if (i == 5) {
+				student.motherName = fileCell;
+			}
+			else if (i == 6) {
+				student.classNum = stoi(fileCell);
+			}
+			else if (i == 7) {
+				student.teacherName = fileCell;
+			}
+			else if (i == 8) {
+				student.reportNum = stoi(fileCell);
+			}
+			else if (i == 9) {
+				student.reportNum = stoi(fileCell);
+			}
+
+			i++;
+		}
+		// adds populated struct to vector
+		listOfAccounts.push_back(student);
+	}
+	AccountsFile.close();
+
+	return listOfAccounts;
 }
 
 vector<AccountDetails> loadAccounts() {
@@ -114,11 +186,14 @@ vector<AccountDetails> loadAccounts() {
 			if (i == 1) {
 				details.username = fileCell;
 			}
-			if (i == 2) {
+			else if (i == 2) {
 				details.password = fileCell;
 			}
-			if (i == 3) {
+			else if (i == 3) {
 				details.accountType = stoi(fileCell);
+			}
+			else if (i == 4) {
+				details.linkID = stoi(fileCell);
 			}
 
 			i++;
@@ -131,12 +206,137 @@ vector<AccountDetails> loadAccounts() {
 	return listOfAccounts;
 }
 
+//____________________________________________________________________________________________________________________________
+//____________________________________________________________________________________________________________________________
+
+void printPersonalDetails(StudentDetails student) {
+	cout << '\n';
+	for (int i = 0; i < g_columnNames.size(); i++) {
+		cout << title(g_columnNames[i]);
+	}
+	cout << '\n' << generateLine() << '\n';
+
+	//for each row in filecontent
+	cout << column(student.firstName)
+		<< column(student.lastName)
+		<< column(to_string(student.yearNum))
+		<< column(student.fatherName)
+		<< column(student.motherName)
+		<< column(to_string(student.classNum))
+		<< column(student.teacherName)
+		<< column(to_string(student.reportNum)) << '\n';
+}
+
+void findStudentThenPrintDetails(int linkID) {
+	vector<StudentDetails> listOfStudents = loadStudents();
+	for (StudentDetails student : listOfStudents) {
+		// checks if inputed details match in database
+		if (linkID == student.linkID) {
+			printPersonalDetails(student);
+		}
+	}
+}
+
+int getStudentMenuChoice(int linkID) {
+	int userChoice;
+
+	drawLine();
+	cout << "STUDENT";
+	drawLine();
+
+	cout << "Heres your information" << '\n';
+	findStudentThenPrintDetails(linkID);
+	cout << '\n' << "[LOG OUT = 0]";
+	cin >> userChoice;
+
+	return userChoice;
+}
+
+void studentMenuOptions(int accountlinkID) {
+	int linkID = accountlinkID;
+
+	switch (getStudentMenuChoice(linkID)) {
+	case 0:
+		mainMenuOptions();
+	}
+}
+
+bool linkAccount(AccountDetails& userAccount, vector<StudentDetails>& listOfstudents) {
+	if (userAccount.accountType != 1) {
+		cout << "not student";
+		return true;
+	}
+
+	for (StudentDetails student : listOfstudents) {
+		if (userAccount.linkID == student.linkID) {
+			return true;
+		}
+	}
+}
+
+void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
+	bool isLinked = false;
+
+	vector<StudentDetails> listOfstudents = loadStudents();
+
+	while (isLinked == false) {
+		isLinked = linkAccount(userAccount, listOfstudents);
+	}
+
+	switch (userAccount.accountType) {
+	case 1:
+		studentMenuOptions(userAccount.linkID);
+	case 2:
+		//parent
+		break;
+	case 3:
+		//teacher
+		break;
+	case 4:
+		//admin
+		break;
+	}
+}
+
+//____________________________________________________________________________________________________________________________
+//____________________________________________________________________________________________________________________________
+
+bool authenticateDetails(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
+	// loops through each row of file and vector
+	for (AccountDetails account : listOfAccounts) {
+		// checks if inputed details match in database
+		if (userInfoToAuthenticate.username == account.username && userInfoToAuthenticate.password == account.password) {
+			userInfoToAuthenticate.linkID = account.linkID;
+			userInfoToAuthenticate.accountType = account.accountType;
+			linkIDThenOpenAccountMenu(userInfoToAuthenticate);
+			cout << "returned!";
+			exit(0);
+		}
+	}
+	listOfAccounts.clear();
+
+	// if authentication fails
+	return false;
+}
+
+AccountDetails getLoginDetailsFromUser() {
+	AccountDetails userLoginDetails;
+
+	cout << '\n' << "Enter your username: ";
+	cin >> userLoginDetails.username;
+	cout << "Enter your password: ";
+	cin >> userLoginDetails.password;
+
+	return userLoginDetails;
+}
+
+
+
 AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	int loginAttempts = 3;
 
-	cout << '\n';
 	drawLine();
-	cout << "LOGIN" << '\n';
+	cout << "LOGIN";
 	drawLine();
 
 	vector<AccountDetails> listOfAccounts = loadAccounts();
@@ -145,12 +345,12 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 		//gets user input
 		AccountDetails userLoginDetails = getLoginDetailsFromUser();
 		//authenticates details
-		bool isAuthenticated = authenticateUser(listOfAccounts, userLoginDetails);
+		bool isAuthenticated = authenticateDetails(listOfAccounts, userLoginDetails);
 
-		if (isAuthenticated) {
-			cout << '\n' << "Logged in!" << '\n';
-			return userLoginDetails;
-		}
+		//if (isAuthenticated) {
+		//	cout << '\n' << "Logged in!" << '\n';
+		//	return userLoginDetails;
+		//}
 
 		loginAttempts--;
 		cout << '\n' << "Wrong username, password or associated account type";
@@ -163,12 +363,13 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	}
 }
 
+
+
 int getMainMenuChoiceFromUser() {
 	int menuChoice;
 
-	cout << '\n';
 	drawLine();
-	cout << "WELLINGTON HIGH SCHOOL STUDENT INFORMATION SYSTEM" << '\n';
+	cout << "WELLINGTON HIGH SCHOOL STUDENT INFORMATION SYSTEM";
 	drawLine();
 
 	cout << '\n' << "Please input the number to the following option" << '\n';
@@ -178,14 +379,13 @@ int getMainMenuChoiceFromUser() {
 	return menuChoice;
 }
 
-void printMainMenu() {
+void mainMenuOptions() {
 	AccountDetails userAccountDetails;
 
 	switch (getMainMenuChoiceFromUser()) {
 	case 1:
-		userAccountDetails = getLoginDetailsFromUserAndAuthenticate();
-		switchAccount(userAccountDetails);
-
+		//getLoginDetailsFromUserAndAuthenticate();
+		getLoginDetailsFromUserAndAuthenticate();
 		break;
 	case 0:
 		cout << "Shutting down application..." << '\n';
@@ -193,13 +393,11 @@ void printMainMenu() {
 		break;
 	default:
 		cout << '\n' << "Please choose one of the options";
-		printMainMenu();
+		mainMenuOptions();
 		break;
 	}
 }
 
 int main() {
-	printMainMenu();
-
-	
+	mainMenuOptions();
 }
