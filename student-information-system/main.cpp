@@ -252,17 +252,17 @@ void printPersonalDetails(StudentDetails student) {
 		<< column(to_string(student.overallGrade)) << '\n';
 }
 
-void findStudentThenPrintDetails(int linkID) {
+StudentDetails findStudent(int linkID) {
 	vector<StudentDetails> listOfStudents = loadStudents();
 	for (StudentDetails student : listOfStudents) {
 		// checks if inputed details match in database
 		if (linkID == student.linkID) {
-			printPersonalDetails(student);
+			return student;
 		}
 	}
 }
 
-int getStudentMenuChoice(int linkID) {
+int getStudentMenuChoice(StudentDetails userStudentDetails) {
 	int userChoice;
 
 	drawLine();
@@ -270,7 +270,8 @@ int getStudentMenuChoice(int linkID) {
 	drawLine();
 
 	cout << "Heres your information" << '\n';
-	findStudentThenPrintDetails(linkID);
+	printPersonalDetails(userStudentDetails);
+	
 	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]";
 	cin >> userChoice;
 
@@ -278,40 +279,18 @@ int getStudentMenuChoice(int linkID) {
 }
 
 void studentMenuOptions(int accountlinkID) {
-	int linkID = accountlinkID;
+	StudentDetails userStudentDetails = findStudent(accountlinkID);
 
-	switch (getStudentMenuChoice(linkID)) {
+	switch (getStudentMenuChoice(userStudentDetails)) {
 	case 0:
 		mainMenuOptions();
 	case 1:
 		//changeLoginDetails();
 		break;
 	}
-
 }
 
-//bool linkAccount(AccountDetails& userAccount, vector<StudentDetails>& listOfStudents) {
-//	if (userAccount.accountType != 1) {
-//		cout << "not student";
-//		return true;
-//	}
-//
-//	for (StudentDetails student : listOfStudents) {
-//		if (userAccount.linkID == student.linkID) {
-//			return true;
-//		}
-//	}
-//}
-
-void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
-	bool isLinked = false;
-
-	vector<StudentDetails> listOfstudents = loadStudents();
-
-	//while (isLinked == false) {
-	//	isLinked = linkAccount(userAccount, listOfstudents);
-	//}
-
+void switchToAccount(AccountDetails userAccount) {
 	switch (userAccount.accountType) {
 	case 1:
 		studentMenuOptions(userAccount.linkID);
@@ -361,7 +340,7 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	drawLine();
 	cout << "LOGIN";
 	drawLine();
-	cout << "Enter your details";
+	cout << "Enter your details" << '\n';
 
 	AccountDetails authenticatedUserAccountDetails;
 
@@ -409,7 +388,7 @@ void mainMenuOptions() {
 			cout << "Shutting down application..." << '\n';
 			return;
 		}
-		linkIDThenOpenAccountMenu(userAccountDetails);
+		switchToAccount(userAccountDetails);
 		break;
 	case 0:
 		cout << '\n' << "Shutting down application..." << '\n';
