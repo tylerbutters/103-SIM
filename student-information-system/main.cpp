@@ -223,9 +223,6 @@ vector<AccountDetails> loadAccounts() {
 	return listOfAccounts;
 }
 
-//____________________________________________________________________________________________________________________________
-//____________________________________________________________________________________________________________________________
-
 void printPersonalDetails(StudentDetails student) {
 	cout << '\n';
 	for (int i = 0; i < g_columnNames.size(); i++) {
@@ -273,14 +270,14 @@ int getStudentMenuChoice(int linkID) {
 	return userChoice;
 }
 
-void studentMenuOptions(int accountlinkID) {
-	int linkID = accountlinkID;
+void studentMenuOptions(AccountDetails userAccount) {
+	int linkID = userAccount.linkID;
 
 	switch (getStudentMenuChoice(linkID)) {
 	case 0:
 		mainMenuOptions();
 	case 1:
-		//changeLoginDetails();
+		//changeLoginDetails(userAccount);
 		break;
 	}
 
@@ -310,7 +307,7 @@ void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
 
 	switch (userAccount.accountType) {
 	case 1:
-		studentMenuOptions(userAccount.linkID);
+		studentMenuOptions(userAccount);
 	case 2:
 		//parent
 		break;
