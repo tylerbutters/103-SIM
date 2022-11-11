@@ -23,7 +23,7 @@ namespace stdprefixes {
 
 using namespace stdprefixes;
 
-void getMainMenuInput();
+void printMainMenuOptions();
 
 struct AccountDetails {
 	int accountType = 0;
@@ -295,6 +295,8 @@ void changeLoginDetails(AccountDetails currentLoginDetails) {
 	vector<AccountDetails> newListOfAccounts = loadNewAccounts(listOfAccounts, replacementDetails, currentLoginDetails);
 
 	writeNewAccountsToFile(newListOfAccounts);
+
+	cout << '\n' << "Details successfully changed!" << '\n';
 }
 
 //____________________________________________________________________________________________________________________________
@@ -347,9 +349,15 @@ void getStudentMenuInput(AccountDetails userAccount) {
 
 	switch (userChoice) {
 	case 0:
-		getMainMenuInput();
+		cout << '\n' << "Logging out..." << '\n';
+		printMainMenuOptions();
+		return;
 	case 1:
 		changeLoginDetails(userAccount);
+		printStudentMenu(userAccount);
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
 		printStudentMenu(userAccount);
 		break;
 	}
@@ -359,12 +367,12 @@ void printStudentMenu(AccountDetails userAccount) {
 	StudentDetails userStudentDetails = findStudent(userAccount.ID);
 
 	printLine();
-	cout << "STUDENT";
+	cout << '\n' << "STUDENT";
 	printLine();
 
-	cout << "Heres your information" << '\n';
+	cout << '\n' << "Heres your information" << '\n';
 	printPersonalDetails(userStudentDetails);
-	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]";
+	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]" << '\n';
 
 	getStudentMenuInput(userAccount);
 }
@@ -430,16 +438,19 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 		AccountDetails userInputtedAccountDetails = getLoginDetailsFromUser();
 		authenticatedUserAccountDetails = authenticateUser(listOfAccounts, userInputtedAccountDetails);
 		if (authenticatedUserAccountDetails.isValid()) {
+			cout << '\n' << "Logged in!" << '\n';
 			return authenticatedUserAccountDetails;
 		}
 
 		loginAttempts--;
 		cout << '\n' << "Wrong username, password or associated account type";
-		cout << '\n' << loginAttempts << " attempts left";
+		cout << '\n' << loginAttempts << " attempts left" << '\n';
 	}
 	// when no attempts left, return empty struct
 	return authenticatedUserAccountDetails;
 }
+
+void getMainMenuInput();
 
 void printMainMenuOptions() {
 	printLine();
@@ -462,7 +473,7 @@ void getMainMenuInput() {
 	case 1:
 		userAccountDetails = getLoginDetailsFromUserAndAuthenticate();
 		if (!userAccountDetails.isValid()) {
-			cout << "Shutting down application..." << '\n';
+			cout << '\n' << "Shutting down application..." << '\n';
 			return;
 		}
 		switchToAccount(userAccountDetails);
