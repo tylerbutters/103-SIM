@@ -30,8 +30,7 @@ struct AccountDetails {
 	string username;
 	string password;
 	int ID = 0;
-
-	//checks if struct is populated
+  
 	bool isValid() {
 		return username != "";
 	};
@@ -426,9 +425,9 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	printLine();
 	cout << "Enter your details" << '\n';
 
+
 	while (loginAttempts > 0) {
 		AccountDetails userInputtedAccountDetails = getLoginDetailsFromUser();
-
 		authenticatedUserAccountDetails = authenticateUser(listOfAccounts, userInputtedAccountDetails);
 		if (authenticatedUserAccountDetails.isValid()) {
 			return authenticatedUserAccountDetails;
@@ -438,7 +437,6 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 		cout << '\n' << "Wrong username, password or associated account type";
 		cout << '\n' << loginAttempts << " attempts left";
 	}
-
 	// when no attempts left, return empty struct
 	return authenticatedUserAccountDetails;
 }
@@ -471,7 +469,7 @@ void getMainMenuInput() {
 		break;
 	case 0:
 		cout << '\n' << "Shutting down application..." << '\n';
-		exit(0);
+		return;
 	default:
 		cout << '\n' << "Please choose one of the options";
 		getMainMenuInput();
