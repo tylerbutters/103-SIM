@@ -53,7 +53,7 @@ struct StudentDetails {
 	int overallGrade = 0;
 };
 
-string g_accountsFileName = ("user-accounts.csv");
+string g_accountsFileName = ("account-database.csv");
 string g_studentsFileName = ("student-database.csv");
 int g_columnWidth = 10;
 vector<string> g_columnNames = { "[SURNAME]", "[NAME]", "[YEAR]", "[FATHER]", "[MOTHER]", "[TEACHER]", "[MATHS]","[ENGLISH]","[SCIENCE]","[CHEM]","[HISTORY]","[OVERALL]" };
@@ -387,6 +387,7 @@ void switchToAccount(AccountDetails userAccount) {
 }
 
 //____________________________________________________________________________________________________________________________
+// MAIN MENU STUFF
 //____________________________________________________________________________________________________________________________
 
 AccountDetails authenticateUser(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
