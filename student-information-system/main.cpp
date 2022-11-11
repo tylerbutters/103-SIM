@@ -32,6 +32,10 @@ struct AccountDetails {
 	string username;
 	string password;
 	int linkID = 0;
+
+	bool isValid() {
+		return username != "";
+	};
 };
 
 struct StudentDetails {
@@ -223,77 +227,76 @@ vector<AccountDetails> loadAccounts() {
 	return listOfAccounts;
 }
 
-//____________________________________________________________________________________________________________________________
-//____________________________________________________________________________________________________________________________
+vector<AccountDetails> loadNewAccounts(vector<AccountDetails> listOfAccounts, AccountDetails replacementDetails, AccountDetails currentLoginDetails) {
+	vector<AccountDetails> newListOfAccounts;
 
-void changeLoginDetails(AccountDetails userLoginDetails) {
+	for (AccountDetails student : listOfAccounts) {
+		//test output
+		cout << student.username;
+		cout << currentLoginDetails.username;
+		cout << student.password;
+		cout << currentLoginDetails.password;
+
+		if (student.username == currentLoginDetails.username && student.password == currentLoginDetails.password) {
+			cout << "SKIP\n\n";
+			continue;
+		}
+		newListOfAccounts.push_back(student); // push back to our replacment content vector
+	}
+
+	newListOfAccounts.push_back(replacementDetails);
+
+	return newListOfAccounts;
+}
+
+void writeNewAccountsToFile(vector<AccountDetails> newListOfAccounts) {
+
 	string tempAccountsFile = "temp-" + g_accountsFile;
-
 	char* fileNamePtr = &g_accountsFile[0];
 	char* tempFileNamePtr = &tempAccountsFile[0];
 
-	// creating an instance of the file stream
-	fstream fileIn(g_accountsFile, ios::in);
+	fstream fileIn(tempAccountsFile, ios::out); // initialised content assigned from a read file
+
 	if (!fileIn.is_open()) {
-		cout << "Warning no file is open\n\n"; // out putting warning
-		return; // end execution of the function
+		cout << "not open";
 	}
+	for (AccountDetails account : newListOfAccounts) {
+		fileIn << account.username << "," << account.password << "," << account.accountType << "," << account.linkID << '\n';
+	}
+	// close files
+	fileIn.close();
+	remove(fileNamePtr); // deleting original file
+	rename(tempFileNamePtr, fileNamePtr);
+}
 
-	fstream fileOut(tempAccountsFile, ios::out); // initialised content assigned from a read file
-	if (!fileOut.is_open()) {
-		cout << "Warning no file is open\n\n"; // out putting warning
-		return; // end execution of the function
-	}
+//____________________________________________________________________________________________________________________________
+//____________________________________________________________________________________________________________________________
+
+void changeLoginDetails(AccountDetails currentLoginDetails) {
+	// creating an instance of the file stream
+
 	vector<AccountDetails> listOfAccounts = loadAccounts();
-	vector<AccountDetails> newListOfAccounts;
 
-	//check to see if file has content
-	//if (fileContent.size() == 0) {
-	//	cout << "Warning file contains no data\n\n";
-	//	fileIn.close(); // close input file
-	//	fileOut.close(); // close the out put file
-	//	remove(tempFileNamePtr); // removing the output file
-	//	return; // end execution of function
-	//}
 	AccountDetails replacementDetails;
 
 	cout << '\n' << "Current login details" << '\n';
-	cout << '\n' << "Username: " << userLoginDetails.username << '\n';
-	cout << "Password: " << userLoginDetails.password << '\n';
+	cout << '\n' << "Username: " << currentLoginDetails.username << '\n';
+	cout << "Password: " << currentLoginDetails.password << '\n';
 	cout << '\n' << "Enter new login details" << '\n';
 	cout << '\n' << "Username: ";
 	cin >> replacementDetails.username;
 	cout << "Password: ";
 	cin >> replacementDetails.password;
+	replacementDetails.accountType = currentLoginDetails.accountType;
+	replacementDetails.linkID = currentLoginDetails.linkID;
 
-	for (AccountDetails student : listOfAccounts) {
-		cout << student.username;
-		if (student.username == userLoginDetails.username && student.password == userLoginDetails.password) {
-			cout << "continue through\n\n";
-			continue;
-		}
-		else {
+	vector<AccountDetails> newListOfAccounts = loadNewAccounts(listOfAccounts, replacementDetails, currentLoginDetails);
 
-			newListOfAccounts.push_back(student); // push back to our replacment content vector
-		}
-	}
-
-	// loop through replacement content display new data
-	//cout << "Data witin new file:\n";
-	for (AccountDetails account : newListOfAccounts) {
-		fileOut << account.username << "," << account.password << "," << account.accountType << "," << account.linkID << '\n';
-	}
-
-	fileOut << replacementDetails.username << "," << replacementDetails.password << "," << userLoginDetails.accountType << "," << userLoginDetails.linkID << '\n';
-
-	// close files
-	fileIn.close();
-	fileOut.close();
-	remove(fileNamePtr); // deleting original file
-	rename(tempFileNamePtr, fileNamePtr);
+	writeNewAccountsToFile(newListOfAccounts);
 
 	return;
 }
+
 //____________________________________________________________________________________________________________________________
 //____________________________________________________________________________________________________________________________
 
@@ -319,17 +322,17 @@ void printPersonalDetails(StudentDetails student) {
 		<< column(to_string(student.overallGrade)) << '\n';
 }
 
-void findStudentThenPrintDetails(int linkID) {
+StudentDetails findStudent(int linkID) {
 	vector<StudentDetails> listOfStudents = loadStudents();
 	for (StudentDetails student : listOfStudents) {
 		// checks if inputed details match in database
 		if (linkID == student.linkID) {
-			printPersonalDetails(student);
+			return student;
 		}
 	}
 }
 
-int getStudentMenuChoice(int linkID) {
+int getStudentMenuChoice(StudentDetails userStudentDetails) {
 	int userChoice;
 
 	drawLine();
@@ -337,50 +340,27 @@ int getStudentMenuChoice(int linkID) {
 	drawLine();
 
 	cout << "Heres your information" << '\n';
-	findStudentThenPrintDetails(linkID);
+	printPersonalDetails(userStudentDetails);
+
 	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]";
 	cin >> userChoice;
 
 	return userChoice;
 }
-
 void studentMenuOptions(AccountDetails userAccount) {
-	int linkID = userAccount.linkID;
+	StudentDetails userStudentDetails = findStudent(userAccount.linkID);
 
-	switch (getStudentMenuChoice(linkID)) {
+	switch (getStudentMenuChoice(userStudentDetails)) {
 	case 0:
 		mainMenuOptions();
 	case 1:
 		changeLoginDetails(userAccount);
-		break;
-	default:
 		studentMenuOptions(userAccount);
-	}
-
-}
-
-bool linkAccount(AccountDetails& userAccount, vector<StudentDetails>& listOfstudents) {
-	if (userAccount.accountType != 1) {
-		cout << "not student";
-		return true;
-	}
-
-	for (StudentDetails student : listOfstudents) {
-		if (userAccount.linkID == student.linkID) {
-			return true;
-		}
+		break;
 	}
 }
 
-void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
-	bool isLinked = false;
-
-	vector<StudentDetails> listOfstudents = loadStudents();
-
-	while (isLinked == false) {
-		isLinked = linkAccount(userAccount, listOfstudents);
-	}
-
+void switchToAccount(AccountDetails userAccount) {
 	switch (userAccount.accountType) {
 	case 1:
 		studentMenuOptions(userAccount);
@@ -399,21 +379,18 @@ void linkIDThenOpenAccountMenu(AccountDetails userAccount) {
 //____________________________________________________________________________________________________________________________
 //____________________________________________________________________________________________________________________________
 
-void authenticateDetails(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
+AccountDetails authenticateUser(vector<AccountDetails> listOfAccounts, AccountDetails userInfoToAuthenticate) {
+	AccountDetails nothing;
 	// loops through each row of file and vector
 	for (AccountDetails account : listOfAccounts) {
 		// checks if inputed details match in database
 		if (userInfoToAuthenticate.username == account.username && userInfoToAuthenticate.password == account.password) {
-			userInfoToAuthenticate.linkID = account.linkID;
-			userInfoToAuthenticate.accountType = account.accountType;
-			linkIDThenOpenAccountMenu(userInfoToAuthenticate);
-			cout << "returned!";
-			exit(0);
+			return account;
 		}
 	}
 	listOfAccounts.clear();
 	// if authentication fails
-	return;
+	return nothing;
 }
 
 AccountDetails getLoginDetailsFromUser() {
@@ -433,25 +410,28 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	drawLine();
 	cout << "LOGIN";
 	drawLine();
-	cout << "Enter your details";
+	cout << "Enter your details" << '\n';
+
+	AccountDetails authenticatedUserAccountDetails;
 
 	vector<AccountDetails> listOfAccounts = loadAccounts();
 
+
 	while (loginAttempts > 0) {
 		//gets user input
-		AccountDetails userLoginDetails = getLoginDetailsFromUser();
+		AccountDetails userInputtedAccountDetails = getLoginDetailsFromUser();
 		//authenticates details
-		authenticateDetails(listOfAccounts, userLoginDetails);
+		authenticatedUserAccountDetails = authenticateUser(listOfAccounts, userInputtedAccountDetails);
+		if (authenticatedUserAccountDetails.isValid()) {
+			return authenticatedUserAccountDetails;
+		}
 
 		loginAttempts--;
 		cout << '\n' << "Wrong username, password or associated account type";
 		cout << '\n' << loginAttempts << " attempts left";
 	}
 
-	if (loginAttempts == 0) {
-		cout << '\n' << "Shutting down application..." << '\n';
-		exit(0);
-	}
+	return authenticatedUserAccountDetails;
 }
 
 int getMainMenuChoiceFromUser() {
@@ -473,13 +453,16 @@ void mainMenuOptions() {
 
 	switch (getMainMenuChoiceFromUser()) {
 	case 1:
-		//getLoginDetailsFromUserAndAuthenticate();
-		getLoginDetailsFromUserAndAuthenticate();
+		userAccountDetails = getLoginDetailsFromUserAndAuthenticate();
+		if (!userAccountDetails.isValid()) {
+			cout << "Shutting down application..." << '\n';
+			return;
+		}
+		switchToAccount(userAccountDetails);
 		break;
 	case 0:
-		cout << "Shutting down application..." << '\n';
+		cout << '\n' << "Shutting down application..." << '\n';
 		exit(0);
-		break;
 	default:
 		cout << '\n' << "Please choose one of the options";
 		mainMenuOptions();
