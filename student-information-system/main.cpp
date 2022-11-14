@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <ctype.h>
+#include <ctime>
 
 namespace stdprefixes {
 	using std::cout;
@@ -207,9 +208,12 @@ vector<AccountDetails> loadAccounts() {
 		AccountDetails details;
 
 		// loops through each cell of row and adds to struct
-		int i = 1;
+		int i = 0;
 		while (getline(stream, fileCell, ',')) {
 			switch (i) {
+			case 0:
+				details.ID = stoi(fileCell);
+				break;
 			case 1:
 				details.username = fileCell;
 				break;
@@ -218,9 +222,6 @@ vector<AccountDetails> loadAccounts() {
 				break;
 			case 3:
 				details.accountType = stoi(fileCell);
-				break;
-			case 4:
-				details.ID = stoi(fileCell);
 				break;
 			}
 
@@ -298,6 +299,116 @@ void changeLoginDetails(AccountDetails currentLoginDetails) {
 	writeNewAccountsToFile(newListOfAccounts);
 
 	cout << '\n' << "Details successfully changed!" << '\n';
+}
+
+void addNewAccountToDabase(AccountDetails newAccountDetails) {
+	fstream AccountsFile(g_accountsFileName, ios::in | ios::app);
+
+	if (!AccountsFile.is_open()) {
+		throw std::runtime_error("Warning file is not open");
+	}
+
+	// writes user input to file
+	AccountsFile << newAccountDetails.ID << ","
+		<< newAccountDetails.username << ","
+		<< newAccountDetails.password << ","
+		<< newAccountDetails.accountType << '\n';
+
+	AccountsFile.close();
+}
+
+void addNewStudentToDabase(StudentDetails newStudentDetails) {
+	fstream StudentsFile(g_studentsFileName, ios::in | ios::app);
+
+	if (!StudentsFile.is_open()) {
+		throw std::runtime_error("Warning file is not open");
+	}
+
+	// writes user input to file
+	StudentsFile << newStudentDetails.ID << ","
+		<< newStudentDetails.lastName << ","
+		<< newStudentDetails.firstName << ","
+		<< newStudentDetails.yearNum << ","
+		<< newStudentDetails.fatherName << ","
+		<< newStudentDetails.motherName << ","
+		<< newStudentDetails.teacherName << ","
+		<< newStudentDetails.mathsGrade << ","
+		<< newStudentDetails.englishGrade << ","
+		<< newStudentDetails.scienceGrade << ","
+		<< newStudentDetails.chemistryGrade << ","
+		<< newStudentDetails.historyGrade << ","
+		<< newStudentDetails.overallGrade << '\n';
+
+	StudentsFile.close();
+}
+
+StudentDetails getNewStudentInformation(int randomID) {
+	StudentDetails newStudentDetails;
+
+	cout << '\n' << "Enter new student information" << '\n';
+	cout << '\n' << "First name: ";
+	cin >> newStudentDetails.firstName;
+	cout << "Lastname: ";
+	cin >> newStudentDetails.lastName;
+	cout << "Year: ";
+	cin >> newStudentDetails.yearNum;
+	cout << "Father: ";
+	cin >> newStudentDetails.fatherName;
+	cout << "Mother: ";
+	cin >> newStudentDetails.motherName;
+	cout << "Teacher ";
+	cin >> newStudentDetails.teacherName;
+	newStudentDetails.ID = randomID;
+
+	return newStudentDetails;
+}
+
+void registerNewUserThenReturn() {
+	AccountDetails newAccountDetails;
+	StudentDetails newStudentDetails;
+	int randomID = rand() & 1000;
+	srand(time(0));
+
+	cout << '\n';
+	printLine();
+	cout << "ADD NEW ACCOUNT" << '\n';
+	printLine();
+
+	cout << '\n' << "Choose the account you want to create" << '\n';
+	cout << '\n' << "[STUDENT = 1] [PARENT = 2] [TEACHER = 3] [ADMIN = 4] [BACK = 0]" << '\n';
+	cin >> newAccountDetails.accountType;
+
+	switch (newAccountDetails.accountType) {
+	case 1:
+		cout << "Student selected" << '\n';
+		newStudentDetails = getNewStudentInformation(randomID);
+		newAccountDetails.username = newStudentDetails.firstName;
+		newAccountDetails.password = newStudentDetails.lastName;
+		newAccountDetails.ID = newStudentDetails.ID;
+		break;
+	case 2:
+		cout << "Parent selected" << '\n';
+		break;
+	case 3:
+		cout << "Teacher selected" << '\n';
+		break;
+	case 4:
+		cout << "Admin selected" << '\n';
+		break;
+	case 0:
+		// back to main menu
+		return;
+		break;
+	default:
+		cout << '\n' << "Invalid user type selected";
+		break;
+	}
+
+	addNewStudentToDabase(newStudentDetails);
+	addNewAccountToDabase(newAccountDetails);
+
+	cout << '\n' << "Account created!" << '\n';
+	return;
 }
 
 //____________________________________________________________________________________________________________________________
@@ -458,7 +569,7 @@ void printMainMenuOptions() {
 	printLine();
 
 	cout << '\n' << "Please input the number to the following option" << '\n';
-	cout << '\n' << "[LOGIN = 1] [EXIT = 0]" << '\n';
+	cout << '\n' << "[LOGIN = 1] [new =2] [EXIT = 0]" << '\n';
 
 	getMainMenuInput();
 }
@@ -470,6 +581,9 @@ void getMainMenuInput() {
 	cin >> userChoice;
 
 	switch (userChoice) {
+	case 0:
+		cout << '\n' << "Shutting down application..." << '\n';
+		return;
 	case 1:
 		userAccountDetails = getLoginDetailsFromUserAndAuthenticate();
 		if (!userAccountDetails.isValid()) {
@@ -477,16 +591,15 @@ void getMainMenuInput() {
 			return;
 		}
 		switchToAccount(userAccountDetails);
-		printMainMenuOptions();
 		break;
-	case 0:
-		cout << '\n' << "Shutting down application..." << '\n';
-		return;
+	case 2:
+		registerNewUserThenReturn();
+		break;
 	default:
 		cout << '\n' << "Please choose one of the options";
 		getMainMenuInput();
-		break;
 	}
+	printMainMenuOptions();
 }
 
 int main() {
