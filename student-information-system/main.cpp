@@ -5,7 +5,9 @@
 #include <string>
 #include <fstream>
 #include <ctype.h>
+#include <windows.h>
 #include <ctime>
+#include <cwchar>
 
 namespace stdprefixes {
 	using std::cout;
@@ -71,13 +73,36 @@ vector<string> g_columnNames = { "surname", "name", "year", "father", "mother", 
 // FORMATTING
 //____________________________________________________________________________________________________________________________
 
-void checkFile(fstream file) {
-	if (!file.is_open()) {
-		throw std::runtime_error("Warning file is not open");
-	}
+void setConsoleStyle() {
+	system("color 1f");
+
+	CONSOLE_FONT_INFOEX cfi;
+	cfi.cbSize = sizeof(cfi);
+	cfi.dwFontSize.X = 16;        // Width of each character in the font
+	cfi.dwFontSize.Y = 24;                  // Height
+	wcscpy_s(cfi.FaceName, L"Terminal"); // Choose your font
+	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 
-void printLine() {
+void setNiceStyle() {
+	system("color f0");
+
+	CONSOLE_FONT_INFOEX cfi;
+	cfi.cbSize = sizeof(cfi);
+	cfi.dwFontSize.X = 0;
+	cfi.dwFontSize.Y = 30;
+	cfi.FontWeight = FW_BOLD;
+	wcscpy_s(cfi.FaceName, L"Consolas");
+	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
+
+	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
+}
+void clear()
+{
+	cout << "\x1B[2J\x1B[H";
+}
+
+void line() {
 	cout << '\n' << "---------------------------------------------------------------------" << '\n';
 }
 
@@ -179,19 +204,19 @@ vector<StudentDetails> loadStudents() {
 				student.ID = stoi(fileCell);
 				break;
 			case 1:
-				student.lastName = fileCell;
+				student.lastName = lowercase(fileCell);
 				break;
 			case 2:
-				student.firstName = fileCell;
+				student.firstName = lowercase(fileCell);
 				break;
 			case 3:
 				student.yearNum = stoi(fileCell);
 				break;
 			case 4:
-				student.fatherName = fileCell;
+				student.fatherName = lowercase(fileCell);
 				break;
 			case 5:
-				student.motherName = fileCell;
+				student.motherName = lowercase(fileCell);
 				break;
 			case 6:
 				student.teacherName = fileCell;
@@ -299,10 +324,10 @@ vector<TeacherDetails> loadTeachers() {
 				teacher.title = fileCell;
 				break;
 			case 2:
-				teacher.firstName = fileCell;
+				teacher.firstName = lowercase(fileCell);
 				break;
 			case 3:
-				teacher.lastName = fileCell;
+				teacher.lastName = lowercase(fileCell);
 				break;
 			}
 
@@ -377,6 +402,11 @@ void changeLoginDetails(AccountDetails currentLoginDetails) {
 	vector<AccountDetails> listOfAccounts = loadAccounts();
 	AccountDetails replacementDetails;
 
+	clear();
+	line();
+	cout << "CHANGE DETAILS";
+	line();
+
 	cout << '\n' << "Current login details" << '\n';
 	cout << '\n' << "Username: " << currentLoginDetails.username << '\n';
 	cout << "Password: " << currentLoginDetails.password << '\n';
@@ -394,6 +424,7 @@ void changeLoginDetails(AccountDetails currentLoginDetails) {
 
 	writeNewAccountsToFile(newListOfAccounts);
 
+	clear();
 	cout << '\n' << "Details successfully changed!" << '\n';
 }
 
@@ -427,9 +458,9 @@ void writeNewTeacherToDabase(TeacherDetails newTeacherDetails) {
 
 	// writes user input to file
 	TeachersFile << newTeacherDetails.ID << ","
-		<< lowercase(newTeacherDetails.title) << "," 
-		<< lowercase(newTeacherDetails.firstName) << ","
-		<< lowercase(newTeacherDetails.lastName) << '\n';
+		<< newTeacherDetails.title << "," 
+		<< newTeacherDetails.firstName << ","
+		<< newTeacherDetails.lastName << '\n';
 
 	TeachersFile.close();
 }
@@ -497,6 +528,11 @@ StudentDetails getNewStudentDetails(int randomID) {
 	StudentDetails newStudentDetails;
 	vector<TeacherDetails> listOfTeachers;
 
+	clear();
+	line();
+	cout << "ADD STUDENT";
+	line();
+
 	cout << '\n' << "Enter new student information" << '\n';
 	cout << '\n' << "First name: ";
 	cin >> newStudentDetails.firstName;
@@ -520,6 +556,11 @@ StudentDetails getNewStudentDetails(int randomID) {
 TeacherDetails getNewTeacherDetails(int randomID) {
 	TeacherDetails newTeacherDetails;
 	int chooseTitle;
+
+	clear();
+	line();
+	cout << "ADD TEACHER";
+	line();
 
 	cout << '\n' << "Choose the teacher's title" << '\n';
 	cout << '\n' << "[MR = 1] [MRS = 2] [MS = 3] [BACK = 0]" << '\n';
@@ -552,6 +593,11 @@ TeacherDetails getNewTeacherDetails(int randomID) {
 AccountDetails getNewAccountDetails(int accountType) {
 	AccountDetails newAccountDetails;
 
+	clear();
+	line();
+	cout << "ADD ADMIN";
+	line();
+
 	cout << '\n' << "Enter new account details" << '\n';
 	cout << '\n' << "Username: ";
 	cin >> newAccountDetails.username;
@@ -568,9 +614,10 @@ void addNewAccountThenReturn(int randomID) {
 	TeacherDetails newTeacherDetails;
 	int confirm = 0;
 
-	printLine();
+	clear();
+	line();
 	cout << "ADD ACCOUNT";
-	printLine();
+	line();
 
 	cout << '\n' << "What type of account are you creating?" << '\n';
 	cout << '\n' << "[TEACHER = 1] [ADMIN = 2] [BACK = 0]" << '\n';
@@ -594,6 +641,7 @@ void addNewAccountThenReturn(int randomID) {
 		newAccountDetails.ID = newTeacherDetails.ID;
 		newAccountDetails.accountType = 2;
 
+		clear();
 		cout << '\n' << "Teacher added!" << '\n';
 		cout << "Note: Teacher's default login details are their first name and last name. This can be changed later" << '\n';
 
@@ -601,6 +649,7 @@ void addNewAccountThenReturn(int randomID) {
 		break;
 	case 2:
 		newAccountDetails = getNewAccountDetails(userChoice);
+		clear();
 		cout << '\n' << "Admin account added!" << '\n';
 		break;
 	default:
@@ -615,9 +664,9 @@ void addNewStudentThenReturn(int randomID) {
 	AccountDetails newAccountDetails;
 	StudentDetails newStudentDetails;
 
-	printLine();
+	line();
 	cout << "NEW STUDENT";
-	printLine();
+	line();
 
 	newStudentDetails = getNewStudentDetails(randomID);
 	newAccountDetails.username = newStudentDetails.firstName;
@@ -722,6 +771,7 @@ void getStudentMenuInput(AccountDetails userAccountDetails) {
 
 	switch (userChoice) {
 	case 0:
+		clear();
 		cout << '\n' << "Logging out..." << '\n';
 		return;
 	case 1:
@@ -736,9 +786,9 @@ void getStudentMenuInput(AccountDetails userAccountDetails) {
 void printStudentMenu(AccountDetails userAccountDetails) {
 	StudentDetails userStudentDetails = findStudent(userAccountDetails.ID);
 
-	printLine();
+	line();
 	cout << "STUDENT";
-	printLine();
+	line();
 
 	cout << '\n' << "Heres your information" << '\n';
 	printPersonalDetails(userStudentDetails);
@@ -756,6 +806,7 @@ void getTeacherMenuInput(AccountDetails userAccountDetails) {
 
 	switch (userChoice) {
 	case 0:
+		clear();
 		cout << '\n' << "Logging out..." << '\n';
 		return;
 	case 1:
@@ -774,9 +825,10 @@ void printTeacherMenu(AccountDetails userAccountDetails) {
 	TeacherDetails userTeacherDetails = findTeacher(userAccountDetails.ID);
 	vector<StudentDetails> listOfStudentsInClass = loadClass(userTeacherDetails);
 
-	printLine();
+	clear();
+	line();
 	cout << "TEACHER";
-	printLine();
+	line();
 
 	cout << '\n' << "Heres your classes information" << '\n';
 	printClassDetails(listOfStudentsInClass);
@@ -837,21 +889,24 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	AccountDetails authenticatedUserAccountDetails;
 	vector<AccountDetails> listOfAccounts = loadAccounts();
 
-	printLine();
+	clear();
+	line();
 	cout << "LOGIN";
-	printLine();
-	cout << "Enter your details" << '\n';
+	line();
+	cout << '\n' << "Enter your details" << '\n';
 
 	while (loginAttempts > 0) {
 		AccountDetails userInputtedAccountDetails = getLoginDetailsFromUser();
 		authenticatedUserAccountDetails = authenticateUser(listOfAccounts, userInputtedAccountDetails);
 		if (authenticatedUserAccountDetails.isValid()) {
+			clear();
 			cout << '\n' << "Logged in!" << '\n';
 			return authenticatedUserAccountDetails;
 		}
 
 		loginAttempts--;
-		cout << '\n' << "Wrong username, password or associated account type";
+		clear();
+		cout << '\n' << "Wrong username or password";
 		cout << '\n' << loginAttempts << " attempts left" << '\n';
 	}
 	// when no attempts left, return empty struct
@@ -861,9 +916,9 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 void getMainMenuInput();
 
 void printMainMenuOptions() {
-	printLine();
+	line();
 	cout << "WELLINGTON HIGH SCHOOL STUDENT INFORMATION SYSTEM";
-	printLine();
+	line();
 
 	cout << '\n' << "Please input the number to the following option" << '\n';
 	cout << '\n' << "[LOGIN = 1] (admin =2) [EXIT = 0]" << '\n';
@@ -913,7 +968,7 @@ void getMainMenuInput() {
 	case 1:
 		userAccountDetails = getLoginDetailsFromUserAndAuthenticate();
 		if (!userAccountDetails.isValid()) {
-			cout << '\n' << "Shutting down application..." << '\n';
+			cout << "Shutting down application..." << '\n';
 			return;
 		}
 		switchToAccount(userAccountDetails);
@@ -929,5 +984,8 @@ void getMainMenuInput() {
 }
 
 int main() {
+	//setConsoleStyle();
+	setNiceStyle();
+
 	printMainMenuOptions();
 }
