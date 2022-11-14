@@ -54,13 +54,20 @@ struct StudentDetails {
 	int overallGrade = 0;
 };
 
+struct TeacherDetails {
+	string firstName;
+	string lastName;
+	string title;
+};
+
 string g_accountsFileName = ("account-database.csv");
 string g_studentsFileName = ("student-database.csv");
+string g_teachersFileName = ("teacher-database.csv");
 int g_columnWidth = 10;
 vector<string> g_columnNames = { "[SURNAME]", "[NAME]", "[YEAR]", "[FATHER]", "[MOTHER]", "[TEACHER]", "[MATHS]","[ENGLISH]","[SCIENCE]","[CHEM]","[HISTORY]","[OVERALL]" };
 
 //____________________________________________________________________________________________________________________________
-// RECURSSIVE
+// FORMATTING
 //____________________________________________________________________________________________________________________________
 
 void checkFile(fstream file) {
@@ -94,6 +101,10 @@ string column(string inputString) {
 	int columnLength = g_columnWidth;
 	string outputString;
 
+	while (inputString.length() > columnLength) {
+		columnLength++;
+	}
+
 	for (size_t i = 0; i < inputString.length(); i++) {
 		outputString += inputString[i];
 		columnLength--;
@@ -118,10 +129,14 @@ string printTableLine() {
 	return outputString;
 }
 
-vector<StudentDetails> loadStudents() {
+//____________________________________________________________________________________________________________________________
+// LOADING
+//____________________________________________________________________________________________________________________________
+
+vector<StudentDetails> loadClass() {
 	string fileRow;
 	string fileCell;
-	vector<StudentDetails> listOfAccounts;
+	vector<StudentDetails> listOfStudentsInClass;
 	fstream studentsFile;
 
 	studentsFile.open(g_studentsFileName, ios::in | ios::app);
@@ -183,11 +198,83 @@ vector<StudentDetails> loadStudents() {
 			i++;
 		}
 		// adds populated struct to vector
-		listOfAccounts.push_back(student);
+		listOfStudentsInClass.push_back(student);
 	}
 	studentsFile.close();
 
-	return listOfAccounts;
+	return listOfStudentsInClass;
+}
+
+vector<StudentDetails> loadStudents() {
+	string fileRow;
+	string fileCell;
+	vector<StudentDetails> listOfStudents;
+	fstream studentsFile;
+
+	studentsFile.open(g_studentsFileName, ios::in | ios::app);
+
+	if (!studentsFile.is_open()) {
+		throw std::runtime_error("Warning file is not open");
+	}
+
+	// loops through each row of student file
+	while (getline(studentsFile, fileRow, '\n')) {
+		stringstream stream(fileRow);
+		StudentDetails student;
+
+		// loops through each cell of row and adds to struct
+		int i = 0;
+		while (getline(stream, fileCell, ',')) {
+			switch (i) {
+			case 0:
+				student.ID = stoi(fileCell);
+				break;
+			case 1:
+				student.lastName = fileCell;
+				break;
+			case 2:
+				student.firstName = fileCell;
+				break;
+			case 3:
+				student.yearNum = stoi(fileCell);
+				break;
+			case 4:
+				student.fatherName = fileCell;
+				break;
+			case 5:
+				student.motherName = fileCell;
+				break;
+			case 6:
+				student.teacherName = fileCell;
+				break;
+			case 7:
+				student.mathsGrade = stoi(fileCell);
+				break;
+			case 8:
+				student.englishGrade = stoi(fileCell);
+				break;
+			case 9:
+				student.scienceGrade = stoi(fileCell);
+				break;
+			case 10:
+				student.chemistryGrade = stoi(fileCell);
+				break;
+			case 11:
+				student.historyGrade = stoi(fileCell);
+				break;
+			case 12:
+				student.overallGrade = stoi(fileCell);
+				break;
+			}
+
+			i++;
+		}
+		// adds populated struct to vector
+		listOfStudents.push_back(student);
+	}
+	studentsFile.close();
+
+	return listOfStudents;
 }
 
 vector<AccountDetails> loadAccounts() {
@@ -205,34 +292,76 @@ vector<AccountDetails> loadAccounts() {
 	// loops through each row of accounts file
 	while (getline(accountsFile, fileRow, '\n')) {
 		stringstream stream(fileRow);
-		AccountDetails details;
+		AccountDetails account;
 
 		// loops through each cell of row and adds to struct
 		int i = 0;
 		while (getline(stream, fileCell, ',')) {
 			switch (i) {
 			case 0:
-				details.ID = stoi(fileCell);
+				account.ID = stoi(fileCell);
 				break;
 			case 1:
-				details.username = fileCell;
+				account.username = fileCell;
 				break;
 			case 2:
-				details.password = fileCell;
+				account.password = fileCell;
 				break;
 			case 3:
-				details.accountType = stoi(fileCell);
+				account.accountType = stoi(fileCell);
 				break;
 			}
 
 			i++;
 		}
 		// adds populated struct to vector
-		listOfAccounts.push_back(details);
+		listOfAccounts.push_back(account);
 	}
 	accountsFile.close();
 
 	return listOfAccounts;
+}
+
+vector<TeacherDetails> loadTeachers() {
+	string fileRow;
+	string fileCell;
+	vector<TeacherDetails> listOfTeachers;
+	fstream teachersFile;
+
+	teachersFile.open(g_teachersFileName, ios::in | ios::app);
+
+	if (!teachersFile.is_open()) {
+		throw std::runtime_error("Warning file is not open");
+	}
+
+	// loops through each row of accounts file
+	while (getline(teachersFile, fileRow, '\n')) {
+		stringstream stream(fileRow);
+		TeacherDetails teacher;
+
+		// loops through each cell of row and adds to struct
+		int i = 0;
+		while (getline(stream, fileCell, ',')) {
+			switch (i) {
+			case 0:
+				teacher.title = fileCell;
+				break;
+			case 1:
+				teacher.firstName = fileCell;
+				break;
+			case 2:
+				teacher.lastName = fileCell;
+				break;
+			}
+
+			i++;
+		}
+		// adds populated struct to vector
+		listOfTeachers.push_back(teacher);
+	}
+	teachersFile.close();
+
+	return listOfTeachers;
 }
 
 vector<AccountDetails> loadNewAccounts(vector<AccountDetails> listOfAccounts, AccountDetails replacementDetails, AccountDetails currentLoginDetails) {
@@ -322,6 +451,21 @@ void addNewAccountToDabase(AccountDetails newAccountDetails) {
 	AccountsFile.close();
 }
 
+void addNewTeacherToDabase(TeacherDetails newTeacherDetails) {
+	fstream TeachersFile(g_teachersFileName, ios::in | ios::app);
+
+	if (!TeachersFile.is_open()) {
+		throw std::runtime_error("Warning file is not open");
+	}
+
+	// writes user input to file
+	TeachersFile << newTeacherDetails.title << "," 
+		<< newTeacherDetails.firstName << "," 
+		<< newTeacherDetails.lastName << '\n';
+
+	TeachersFile.close();
+}
+
 void addNewStudentToDabase(StudentDetails newStudentDetails) {
 	fstream StudentsFile(g_studentsFileName, ios::in | ios::app);
 
@@ -347,8 +491,34 @@ void addNewStudentToDabase(StudentDetails newStudentDetails) {
 	StudentsFile.close();
 }
 
-StudentDetails getNewStudentInformation(int randomID) {
+string chooseTeacher(vector<TeacherDetails> listOfTeachers) {
+	int counter = 1;
+	int teacherChoice;
+	string teacherString;
+
+	for (TeacherDetails teacher : listOfTeachers) {
+		cout << "[" << teacher.title << teacher.lastName << " = " << counter << " ]" << '\n';
+
+		counter++;
+	}
+
+	cin >> teacherChoice;
+
+	counter = 1;
+	for (TeacherDetails teacher : listOfTeachers) {
+		if (counter == teacherChoice) {
+			teacherString = teacher.title + teacher.lastName;
+			return teacherString;
+		}
+
+		counter++;
+	}
+}
+
+StudentDetails getNewStudentDetails(int randomID) {
 	StudentDetails newStudentDetails;
+	vector<TeacherDetails> listOfTeachers;
+	int amountOfTeachers;
 
 	cout << '\n' << "Enter new student information" << '\n';
 	cout << '\n' << "First name: ";
@@ -361,43 +531,103 @@ StudentDetails getNewStudentInformation(int randomID) {
 	cin >> newStudentDetails.fatherName;
 	cout << "Mother: ";
 	cin >> newStudentDetails.motherName;
-	cout << "Teacher ";
-	cin >> newStudentDetails.teacherName;
+	cout << "Teacher: " << '\n';
+
+	listOfTeachers = loadTeachers();
+	newStudentDetails.teacherName = chooseTeacher(listOfTeachers);
 	newStudentDetails.ID = randomID;
 
 	return newStudentDetails;
 }
 
-AccountDetails getNewAccountDetails(AccountDetails newAccountDetails) {
+TeacherDetails getNewTeacherDetails() {
+	TeacherDetails newTeacherDetails;
+	int chooseTitle;
+
+	cout << '\n' << "Choose the teacher's title" << '\n';
+	cout << '\n' << "[MR = 1] [MRS = 2] [MS = 3] [BACK = 0]" << '\n';
+	cin >> chooseTitle;
+	
+	switch (chooseTitle) {
+	case 0:
+		return newTeacherDetails;
+	case 1:
+		newTeacherDetails.title = "Mr. ";
+		break;
+	case 2:
+		newTeacherDetails.title = "Mrs. ";
+		break;
+	case 3:
+		newTeacherDetails.title = "Ms. ";
+		break;
+	}
+	cout << '\n' << "Enter the teacher's name" << '\n';
+	cout << '\n' << "First name: ";
+	cin >> newTeacherDetails.firstName;
+	cout << "Last name: ";
+	cin >> newTeacherDetails.lastName;
+
+	return newTeacherDetails;
+}
+
+AccountDetails getNewAccountDetails(int accountType) {
+	AccountDetails newAccountDetails;
+
 	cout << '\n' << "Enter new account details" << '\n';
 	cout << '\n' << "Username: ";
 	cin >> newAccountDetails.username;
 	cout << "Password: ";
 	cin >> newAccountDetails.password;
-
+	newAccountDetails.accountType = accountType + 1;
+	
 	return newAccountDetails;
 }
 
 void addNewAccountThenReturn() {
+	int userChoice;
 	AccountDetails newAccountDetails;
+	TeacherDetails newTeacherDetails;
+	int confirm = 0;
 
 	printLine();
 	cout << "ADD ACCOUNT";
 	printLine();
 
 	cout << '\n' << "What type of account are you creating?" << '\n';
-	cout << '\n' << "[TEACHER = 2] [ADMIN = 3] [BACK = 0]" << '\n';
-	cin >> newAccountDetails.accountType;
+	cout << '\n' << "[TEACHER = 1] [ADMIN = 2] [BACK = 0]" << '\n';
+	cin >> userChoice;
 
-	if (newAccountDetails.accountType == 0) {
+	switch (userChoice)
+	{
+	case 0: 
 		return;
+	case 1:
+		while (confirm != 1) {
+			newTeacherDetails = getNewTeacherDetails();
+
+			cout << '\n' << newTeacherDetails.title << newTeacherDetails.firstName << " " << newTeacherDetails.lastName << '\n';
+			cout << "Conirm?" << '\n';
+			cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
+			cin >> confirm;
+		}
+
+		newAccountDetails.username = newTeacherDetails.firstName;
+		newAccountDetails.password = newTeacherDetails.lastName;
+		cout << '\n' << "Teacher added!" << '\n';
+		cout << "Note: Teacher's default login details are their first name and last name. This can be changed later" << '\n';
+
+		addNewTeacherToDabase(newTeacherDetails);
+		break;
+	case 2:
+		newAccountDetails = getNewAccountDetails(userChoice);
+		cout << '\n' << "Admin account added!" << '\n';
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		addNewAccountThenReturn();
 	}
 
-	newAccountDetails = getNewAccountDetails(newAccountDetails);
-
 	addNewAccountToDabase(newAccountDetails);
-
-	cout << '\n' << "Account created!" << '\n';
 }
 
 void addNewStudentThenReturn() {
@@ -410,16 +640,17 @@ void addNewStudentThenReturn() {
 	cout << "NEW STUDENT";
 	printLine();
 
-	newStudentDetails = getNewStudentInformation(randomID);
+	newStudentDetails = getNewStudentDetails(randomID);
 	newAccountDetails.username = newStudentDetails.firstName;
 	newAccountDetails.password = newStudentDetails.lastName;
 	newAccountDetails.ID = newStudentDetails.ID;
+	newAccountDetails.accountType = 1;
 
 	addNewStudentToDabase(newStudentDetails);
 	addNewAccountToDabase(newAccountDetails);
 
 	cout << '\n' << "Student added!" << '\n';
-	cout << "Note: Student's default login details are their first name and last name" << '\n';
+	cout << "Note: Student's default login details are their first name and last name. This can be changed later" << '\n';
 }
 
 //____________________________________________________________________________________________________________________________
@@ -481,7 +712,6 @@ void getStudentMenuInput(AccountDetails userAccountDetails) {
 	default:
 		cout << '\n' << "Please choose one of the options" << '\n';
 		printStudentMenu(userAccountDetails);
-		break;
 	}
 }
 
