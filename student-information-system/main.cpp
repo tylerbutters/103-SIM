@@ -63,8 +63,8 @@ struct TeacherDetails {
 string g_accountsFileName = ("account-database.csv");
 string g_studentsFileName = ("student-database.csv");
 string g_teachersFileName = ("teacher-database.csv");
-int g_columnWidth = 10;
-vector<string> g_columnNames = { "[SURNAME]", "[NAME]", "[YEAR]", "[FATHER]", "[MOTHER]", "[TEACHER]", "[MATHS]","[ENGLISH]","[SCIENCE]","[CHEM]","[HISTORY]","[OVERALL]" };
+int g_columnWidth = 13;
+vector<string> g_columnNames = { "Surname", "name", "year", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
 
 //____________________________________________________________________________________________________________________________
 // FORMATTING
@@ -80,15 +80,30 @@ void printLine() {
 	cout << '\n' << "---------------------------------------------------------------------" << '\n';
 }
 
-string title(string inputString) {
-	int columnLength = g_columnWidth + 1;
-	string outputString;
+string lowercase(string inputString) {
+	for (size_t i = 0; i < inputString.length(); i++) {
+		inputString[i] = tolower(inputString[i]);
+	}
+	return inputString;
+}
+
+string uppercase(string inputString) {
+	for (size_t i = 0; i < inputString.length(); i++) {
+		inputString[i] = toupper(inputString[i]);
+	}
+	return inputString;
+}
+
+string category(string inputString) {
+	int columnLength = g_columnWidth - 1;
+	string outputString = "[";
 
 	for (size_t i = 0; i < inputString.length(); i++) {
 		outputString += inputString[i];
 		columnLength--;
 	}
-
+	outputString = uppercase(outputString);
+	outputString += "]";
 	while (columnLength != 0) {
 		outputString += " ";
 		columnLength--;
@@ -101,8 +116,14 @@ string column(string inputString) {
 	int columnLength = g_columnWidth;
 	string outputString;
 
+	// makes column longer if it cant fit string
 	while (inputString.length() > columnLength) {
 		columnLength++;
+	}
+
+	// makes first letter capital
+	for (int i = 0; i < 1; i++) {
+		inputString[i] = toupper(inputString[i]);
 	}
 
 	for (size_t i = 0; i < inputString.length(); i++) {
@@ -475,12 +496,12 @@ void addNewStudentToDabase(StudentDetails newStudentDetails) {
 
 	// writes user input to file
 	StudentsFile << newStudentDetails.ID << ","
-		<< newStudentDetails.lastName << ","
-		<< newStudentDetails.firstName << ","
+		<< lowercase(newStudentDetails.lastName) << ","
+		<< lowercase(newStudentDetails.firstName) << ","
 		<< newStudentDetails.yearNum << ","
-		<< newStudentDetails.fatherName << ","
-		<< newStudentDetails.motherName << ","
-		<< newStudentDetails.teacherName << ","
+		<< lowercase(newStudentDetails.fatherName) << ","
+		<< lowercase(newStudentDetails.motherName) << ","
+		<< lowercase(newStudentDetails.teacherName) << ","
 		<< newStudentDetails.mathsGrade << ","
 		<< newStudentDetails.englishGrade << ","
 		<< newStudentDetails.scienceGrade << ","
@@ -497,7 +518,17 @@ string chooseTeacher(vector<TeacherDetails> listOfTeachers) {
 	string teacherString;
 
 	for (TeacherDetails teacher : listOfTeachers) {
-		cout << "[" << teacher.title << teacher.lastName << " = " << counter << " ]" << '\n';
+		cout << "[";
+		// makes uppercase
+		for (int i = 0; i < teacher.title.length(); i++) {
+			teacher.title[i] = toupper(teacher.title[i]);
+			cout << teacher.title[i];
+		}
+		for (int i = 0; i < teacher.lastName.length(); i++) {
+			teacher.lastName[i] = toupper(teacher.lastName[i]);
+			cout << teacher.lastName[i];
+		}
+		cout << " = " << counter << " ] ";
 
 		counter++;
 	}
@@ -518,7 +549,6 @@ string chooseTeacher(vector<TeacherDetails> listOfTeachers) {
 StudentDetails getNewStudentDetails(int randomID) {
 	StudentDetails newStudentDetails;
 	vector<TeacherDetails> listOfTeachers;
-	int amountOfTeachers;
 
 	cout << '\n' << "Enter new student information" << '\n';
 	cout << '\n' << "First name: ";
@@ -531,7 +561,7 @@ StudentDetails getNewStudentDetails(int randomID) {
 	cin >> newStudentDetails.fatherName;
 	cout << "Mother: ";
 	cin >> newStudentDetails.motherName;
-	cout << "Teacher: " << '\n';
+	cout << "Teacher: " << '\n' << '\n';
 
 	listOfTeachers = loadTeachers();
 	newStudentDetails.teacherName = chooseTeacher(listOfTeachers);
@@ -661,7 +691,7 @@ void printPersonalDetails(StudentDetails student) {
 	cout << '\n';
 	// prints the titles of each collumn
 	for (size_t i = 0; i < g_columnNames.size(); i++) {
-		cout << title(g_columnNames[i]);
+		cout << category(g_columnNames[i]);
 	}
 	cout << '\n' << printTableLine() << '\n';
 
@@ -741,7 +771,7 @@ void switchToAccount(AccountDetails userAccount) {
 		//teacher
 		break;
 	case 4:
-		//admin
+		//admins
 		break;
 	default:
 		cout << "No account type";
