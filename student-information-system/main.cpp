@@ -393,9 +393,8 @@ void addNewAccountThenReturn() {
 		return;
 	}
 
-	cout << newAccountDetails.accountType;
 	newAccountDetails = getNewAccountDetails(newAccountDetails);
-	cout << newAccountDetails.accountType;
+
 	addNewAccountToDabase(newAccountDetails);
 
 	cout << '\n' << "Account created!" << '\n';
