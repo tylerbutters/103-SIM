@@ -65,7 +65,7 @@ string g_accountsFileName = ("account-database.csv");
 string g_studentsFileName = ("student-database.csv");
 string g_teachersFileName = ("teacher-database.csv");
 int g_columnWidth = 13;
-vector<string> g_columnNames = { "Surname", "name", "year", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
+vector<string> g_columnNames = { "surname", "name", "year", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
 
 //____________________________________________________________________________________________________________________________
 // FORMATTING
@@ -118,14 +118,12 @@ string column(string inputString) {
 	string outputString;
 
 	// makes column longer if it cant fit string
-	while (inputString.length() > columnLength) {
-		columnLength++;
+	if (inputString.length() > columnLength) {
+		columnLength = inputString.length();
 	}
 
 	// makes first letter capital
-	for (int i = 0; i < 1; i++) {
-		inputString[i] = toupper(inputString[i]);
-	}
+	inputString[0] = toupper(inputString[0]);
 
 	for (size_t i = 0; i < inputString.length(); i++) {
 		outputString += inputString[i];
@@ -445,12 +443,12 @@ void writeNewStudentToDabase(StudentDetails newStudentDetails) {
 
 	// writes user input to file
 	StudentsFile << newStudentDetails.ID << ","
-		<< lowercase(newStudentDetails.lastName) << ","
-		<< lowercase(newStudentDetails.firstName) << ","
+		<< newStudentDetails.lastName << ","
+		<< newStudentDetails.firstName << ","
 		<< newStudentDetails.yearNum << ","
-		<< lowercase(newStudentDetails.fatherName) << ","
-		<< lowercase(newStudentDetails.motherName) << ","
-		<< lowercase(newStudentDetails.teacherName) << ","
+		<< newStudentDetails.fatherName << ","
+		<< newStudentDetails.motherName << ","
+		<< newStudentDetails.teacherName << ","
 		<< newStudentDetails.mathsGrade << ","
 		<< newStudentDetails.englishGrade << ","
 		<< newStudentDetails.scienceGrade << ","
@@ -888,7 +886,6 @@ void admin() {
 		}
 		isAvaliableID = true;
 	}
-	
 
 	cout << "(add student =2) (create account =3)";
 	cin >> userChoice;
