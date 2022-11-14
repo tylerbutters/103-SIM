@@ -28,10 +28,10 @@ void printMainMenuOptions();
 void getMainMenuInput();
 
 struct AccountDetails {
-	int accountType = 0;
+	int ID = 0;
 	string username;
 	string password;
-	int ID = 0;
+	int accountType = 0;
 
 	bool isValid() {
 		return username != "";
@@ -77,7 +77,7 @@ string title(string inputString) {
 	int columnLength = g_columnWidth + 1;
 	string outputString;
 
-	for (int i = 0; i < inputString.length(); i++) {
+	for (size_t i = 0; i < inputString.length(); i++) {
 		outputString += inputString[i];
 		columnLength--;
 	}
@@ -94,7 +94,7 @@ string column(string inputString) {
 	int columnLength = g_columnWidth;
 	string outputString;
 
-	for (int i = 0; i < inputString.length(); i++) {
+	for (size_t i = 0; i < inputString.length(); i++) {
 		outputString += inputString[i];
 		columnLength--;
 	}
@@ -109,7 +109,7 @@ string column(string inputString) {
 
 string printTableLine() {
 	string outputString;
-	for (int i = 0; i < g_columnNames.size(); i++) {
+	for (size_t i = 0; i < g_columnNames.size(); i++) {
 		for (int i = 0; i < g_columnWidth; i++) {
 			outputString += "_";
 		}
@@ -265,12 +265,12 @@ void writeNewAccountsToFile(vector<AccountDetails> newListOfAccounts) {
 
 	// writes account details to file
 	for (AccountDetails account : newListOfAccounts) {
-		accountsFile << account.username << "," << account.password << "," << account.accountType << "," << account.ID << '\n';
+		accountsFile << account.ID << "," << account.username << "," << account.password << "," << account.accountType << '\n';
 	}
 	accountsFile.close();
 
 	remove(accountsFileNamePtr); // deleting original file
-	rename(tempFileNamePtr, accountsFileNamePtr); //rename new file
+	int x = rename(tempFileNamePtr, accountsFileNamePtr); //rename new file
 }
 
 //____________________________________________________________________________________________________________________________
@@ -300,6 +300,11 @@ void changeLoginDetails(AccountDetails currentLoginDetails) {
 
 	cout << '\n' << "Details successfully changed!" << '\n';
 }
+
+//____________________________________________________________________________________________________________________________
+// REGISTER
+//____________________________________________________________________________________________________________________________
+
 
 void addNewAccountToDabase(AccountDetails newAccountDetails) {
 	fstream AccountsFile(g_accountsFileName, ios::in | ios::app);
@@ -363,52 +368,59 @@ StudentDetails getNewStudentInformation(int randomID) {
 	return newStudentDetails;
 }
 
-void registerNewUserThenReturn() {
+AccountDetails getNewAccountDetails(AccountDetails newAccountDetails) {
+	cout << '\n' << "Enter new account details" << '\n';
+	cout << '\n' << "Username: ";
+	cin >> newAccountDetails.username;
+	cout << "Password: ";
+	cin >> newAccountDetails.password;
+
+	return newAccountDetails;
+}
+
+void addNewAccountThenReturn() {
+	AccountDetails newAccountDetails;
+
+	printLine();
+	cout << "ADD ACCOUNT";
+	printLine();
+
+	cout << '\n' << "What type of account are you creating?" << '\n';
+	cout << '\n' << "[TEACHER = 2] [ADMIN = 3] [BACK = 0]" << '\n';
+	cin >> newAccountDetails.accountType;
+
+	if (newAccountDetails.accountType == 0) {
+		return;
+	}
+
+	cout << newAccountDetails.accountType;
+	newAccountDetails = getNewAccountDetails(newAccountDetails);
+	cout << newAccountDetails.accountType;
+	addNewAccountToDabase(newAccountDetails);
+
+	cout << '\n' << "Account created!" << '\n';
+}
+
+void addNewStudentThenReturn() {
+	srand((unsigned int)time(0));
 	AccountDetails newAccountDetails;
 	StudentDetails newStudentDetails;
 	int randomID = rand() & 1000;
-	srand(time(0));
 
-	cout << '\n';
 	printLine();
-	cout << "ADD NEW ACCOUNT" << '\n';
+	cout << "NEW STUDENT";
 	printLine();
 
-	cout << '\n' << "Choose the account you want to create" << '\n';
-	cout << '\n' << "[STUDENT = 1] [PARENT = 2] [TEACHER = 3] [ADMIN = 4] [BACK = 0]" << '\n';
-	cin >> newAccountDetails.accountType;
-
-	switch (newAccountDetails.accountType) {
-	case 1:
-		cout << "Student selected" << '\n';
-		newStudentDetails = getNewStudentInformation(randomID);
-		newAccountDetails.username = newStudentDetails.firstName;
-		newAccountDetails.password = newStudentDetails.lastName;
-		newAccountDetails.ID = newStudentDetails.ID;
-		break;
-	case 2:
-		cout << "Parent selected" << '\n';
-		break;
-	case 3:
-		cout << "Teacher selected" << '\n';
-		break;
-	case 4:
-		cout << "Admin selected" << '\n';
-		break;
-	case 0:
-		// back to main menu
-		return;
-		break;
-	default:
-		cout << '\n' << "Invalid user type selected";
-		break;
-	}
+	newStudentDetails = getNewStudentInformation(randomID);
+	newAccountDetails.username = newStudentDetails.firstName;
+	newAccountDetails.password = newStudentDetails.lastName;
+	newAccountDetails.ID = newStudentDetails.ID;
 
 	addNewStudentToDabase(newStudentDetails);
 	addNewAccountToDabase(newAccountDetails);
 
-	cout << '\n' << "Account created!" << '\n';
-	return;
+	cout << '\n' << "Student added!" << '\n';
+	cout << "Note: Student's default login details are their first name and last name" << '\n';
 }
 
 //____________________________________________________________________________________________________________________________
@@ -418,7 +430,7 @@ void registerNewUserThenReturn() {
 void printPersonalDetails(StudentDetails student) {
 	cout << '\n';
 	// prints the titles of each collumn
-	for (int i = 0; i < g_columnNames.size(); i++) {
+	for (size_t i = 0; i < g_columnNames.size(); i++) {
 		cout << title(g_columnNames[i]);
 	}
 	cout << '\n' << printTableLine() << '\n';
@@ -454,7 +466,7 @@ StudentDetails findStudent(int accountID) {
 
 void printStudentMenu(AccountDetails userAccount);
 
-void getStudentMenuInput(AccountDetails userAccount) {
+void getStudentMenuInput(AccountDetails userAccountDetails) {
 	int userChoice;
 
 	cin >> userChoice;
@@ -464,28 +476,28 @@ void getStudentMenuInput(AccountDetails userAccount) {
 		cout << '\n' << "Logging out..." << '\n';
 		return;
 	case 1:
-		changeLoginDetails(userAccount);
-		printStudentMenu(userAccount);
+		changeLoginDetails(userAccountDetails);
+		return;
 		break;
 	default:
 		cout << '\n' << "Please choose one of the options" << '\n';
-		printStudentMenu(userAccount);
+		printStudentMenu(userAccountDetails);
 		break;
 	}
 }
 
-void printStudentMenu(AccountDetails userAccount) {
-	StudentDetails userStudentDetails = findStudent(userAccount.ID);
+void printStudentMenu(AccountDetails userAccountDetails) {
+	StudentDetails userStudentDetails = findStudent(userAccountDetails.ID);
 
 	printLine();
-	cout << '\n' << "STUDENT";
+	cout << "STUDENT";
 	printLine();
 
 	cout << '\n' << "Heres your information" << '\n';
 	printPersonalDetails(userStudentDetails);
 	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]" << '\n';
 
-	getStudentMenuInput(userAccount);
+	getStudentMenuInput(userAccountDetails);
 }
 
 void switchToAccount(AccountDetails userAccount) {
@@ -501,6 +513,9 @@ void switchToAccount(AccountDetails userAccount) {
 		break;
 	case 4:
 		//admin
+		break;
+	default:
+		cout << "No account type";
 		break;
 	}
 }
@@ -569,7 +584,7 @@ void printMainMenuOptions() {
 	printLine();
 
 	cout << '\n' << "Please input the number to the following option" << '\n';
-	cout << '\n' << "[LOGIN = 1] [new =2] [EXIT = 0]" << '\n';
+	cout << '\n' << "[LOGIN = 1] (add student =2) (create account =3) [EXIT = 0]" << '\n';
 
 	getMainMenuInput();
 }
@@ -593,7 +608,10 @@ void getMainMenuInput() {
 		switchToAccount(userAccountDetails);
 		break;
 	case 2:
-		registerNewUserThenReturn();
+		addNewStudentThenReturn();
+		break;
+	case 3:
+		addNewAccountThenReturn();
 		break;
 	default:
 		cout << '\n' << "Please choose one of the options";
