@@ -23,14 +23,16 @@ namespace stdprefixes {
 
 using namespace stdprefixes;
 
+void printMainMenuOptions();
 void getMainMenuInput();
+
 
 struct AccountDetails {
 	int accountType = 0;
 	string username;
 	string password;
 	int ID = 0;
-  
+
 	bool isValid() {
 		return username != "";
 	};
@@ -347,7 +349,8 @@ void getStudentMenuInput(AccountDetails userAccount) {
 
 	switch (userChoice) {
 	case 0:
-		getMainMenuInput();
+		return;
+		//printMainMenuOptions();
 	case 1:
 		changeLoginDetails(userAccount);
 		printStudentMenu(userAccount);
@@ -373,6 +376,7 @@ void switchToAccount(AccountDetails userAccount) {
 	switch (userAccount.accountType) {
 	case 1:
 		printStudentMenu(userAccount);
+		return;
 	case 2:
 		//parent
 		break;
@@ -466,6 +470,7 @@ void getMainMenuInput() {
 			return;
 		}
 		switchToAccount(userAccountDetails);
+		printMainMenuOptions();
 		break;
 	case 0:
 		cout << '\n' << "Shutting down application..." << '\n';
