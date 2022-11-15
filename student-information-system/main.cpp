@@ -73,9 +73,8 @@ vector<string> g_columnNames = { "surname", "name", "year", "father", "mother", 
 // FORMATTING
 //____________________________________________________________________________________________________________________________
 
-void setConsoleStyle() {
+void setStyleClassic() {
 	system("color 1f");
-
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
 	cfi.dwFontSize.X = 16;        // Width of each character in the font
@@ -84,18 +83,24 @@ void setConsoleStyle() {
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 
-void setNiceStyle() {
+void setStyleModern() {
 	system("color f0");
-
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
-	cfi.dwFontSize.X = 0;
-	cfi.dwFontSize.Y = 30;
+	cfi.dwFontSize.Y = 24;
 	cfi.FontWeight = FW_BOLD;
 	wcscpy_s(cfi.FaceName, L"Consolas");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
+}
 
-	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
+void setStyleDefault() {
+	system("color 0f");
+	CONSOLE_FONT_INFOEX cfi;
+	cfi.cbSize = sizeof(cfi);
+	cfi.dwFontSize.Y = 22;
+	cfi.FontWeight = FW_NORMAL;
+	wcscpy_s(cfi.FaceName, L"Cascadia");
+	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 void clear()
 {
@@ -139,7 +144,7 @@ string category(string inputString) {
 }
 
 string column(string inputString) {
-	int columnLength = g_columnWidth;
+	size_t columnLength = g_columnWidth;
 	string outputString;
 
 	// makes column longer if it cant fit string
@@ -498,11 +503,11 @@ string chooseTeacher(vector<TeacherDetails> listOfTeachers) {
 	for (TeacherDetails teacher : listOfTeachers) {
 		cout << "[";
 		// makes uppercase
-		for (int i = 0; i < teacher.title.length(); i++) {
+		for (size_t i = 0; i < teacher.title.length(); i++) {
 			teacher.title[i] = toupper(teacher.title[i]);
 			cout << teacher.title[i];
 		}
-		for (int i = 0; i < teacher.lastName.length(); i++) {
+		for (size_t i = 0; i < teacher.lastName.length(); i++) {
 			teacher.lastName[i] = toupper(teacher.lastName[i]);
 			cout << teacher.lastName[i];
 		}
@@ -522,6 +527,8 @@ string chooseTeacher(vector<TeacherDetails> listOfTeachers) {
 
 		counter++;
 	}
+
+	return teacherString;
 }
 
 StudentDetails getNewStudentDetails(int randomID) {
@@ -739,6 +746,7 @@ void printClassDetails(vector<StudentDetails> listOfStudentsInClass) {
 
 StudentDetails findStudent(int accountID) {
 	vector<StudentDetails> listOfStudents = loadStudents();
+	StudentDetails inValid;
 
 	// loops through each student in database
 	for (StudentDetails student : listOfStudents) {
@@ -747,10 +755,13 @@ StudentDetails findStudent(int accountID) {
 			return student;
 		}
 	}
+
+	return inValid;
 }
 
 TeacherDetails findTeacher(int accountID) {
 	vector<TeacherDetails> listOfTeachers = loadTeachers();
+	TeacherDetails inValid;
 
 	// loops through each student in database
 	for (TeacherDetails teacher : listOfTeachers) {
@@ -759,6 +770,8 @@ TeacherDetails findTeacher(int accountID) {
 			return teacher;
 		}
 	}
+
+	return inValid;
 }
 
 
@@ -921,8 +934,47 @@ void printMainMenuOptions() {
 	line();
 
 	cout << '\n' << "Please input the number to the following option" << '\n';
-	cout << '\n' << "[LOGIN = 1] (admin =2) [EXIT = 0]" << '\n';
+	cout << '\n' << "[LOGIN = 1] [THEME = 3] (admin =2) [EXIT = 0]" << '\n';
 	getMainMenuInput();
+}
+
+void printThemeMenu();
+
+void getThemeMenuInput() {
+	int userChoice;
+
+	cin >> userChoice;
+
+	switch (userChoice) {
+	case 0:
+		return;
+	case 1:
+		setStyleClassic();
+		break;
+	case 2:
+		setStyleDefault();
+		break;
+	case 3:
+		setStyleModern();
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options";
+		getThemeMenuInput();
+	}
+
+	printThemeMenu();
+}
+
+void printThemeMenu() {
+	clear();
+	line();
+	cout << "THEMES";
+	line();
+
+	cout << '\n' << "Choose theme" << '\n';
+	cout << '\n' << "[CLASSIC = 1] [DEFAULT = 2] [MODERN = 3] [BACK = 0]" << '\n';
+
+	getThemeMenuInput();
 }
 
 void admin() {
@@ -976,6 +1028,9 @@ void getMainMenuInput() {
 	case 2:
 		admin();
 		break;
+	case 3:
+		printThemeMenu();
+		break;
 	default:
 		cout << '\n' << "Please choose one of the options";
 		getMainMenuInput();
@@ -984,8 +1039,6 @@ void getMainMenuInput() {
 }
 
 int main() {
-	//setConsoleStyle();
-	setNiceStyle();
-
+	setStyleDefault();
 	printMainMenuOptions();
 }
