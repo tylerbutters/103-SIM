@@ -154,11 +154,6 @@ string column(string inputString) {
 	size_t columnLength = g_columnWidth;
 	string outputString;
 
-	// makes column longer if it cant fit string
-	if (inputString.length() > columnLength) {
-		columnLength = inputString.length();
-	}
-
 	// makes first letter capital
 	inputString[0] = toupper(inputString[0]);
 
@@ -371,18 +366,36 @@ vector<AccountDetails> loadNewAccounts(vector<AccountDetails>& listOfAccounts, A
 	return newListOfAccounts;
 }
 
-vector<StudentDetails> loadNewStudents(vector<StudentDetails>& listOfStudents, StudentDetails& studentDetailsToDelete) {
+vector<StudentDetails> loadNewStudentsAfterDeleted(vector<StudentDetails>& listOfStudents, StudentDetails& newStudentDetails) {
 	vector<StudentDetails> newListOfStudents;
 
 	// loops through each Student in database
 	for (StudentDetails student : listOfStudents) {
 		// finds current Student details and skips
-		if (student.ID == studentDetailsToDelete.ID) {
+		if (student.ID == newStudentDetails.ID) {
 			continue;
 		}
 		// add all Students into new vector, exculding current details
 		newListOfStudents.push_back(student);
 	}
+
+	return newListOfStudents;
+}
+
+vector<StudentDetails> loadNewStudentsAfterEdited(vector<StudentDetails>& listOfStudents, StudentDetails& replacementDetails, StudentDetails& currentStudentDetails) {
+	vector<StudentDetails> newListOfStudents;
+
+	// loops through each Student in database
+	for (StudentDetails student : listOfStudents) {
+		// finds current Student details and skips
+		if (student.ID == currentStudentDetails.ID) {
+			continue;
+		}
+		// add all Students into new vector, exculding current details
+		newListOfStudents.push_back(student);
+	}
+	// then appends on the new student details
+	newListOfStudents.push_back(replacementDetails);
 
 	return newListOfStudents;
 }
@@ -998,7 +1011,7 @@ StudentDetails getInputToFindStudent() {
 void deleteStudent(StudentDetails& studentDetailsToDelete) {
 	vector<StudentDetails> listOfStudents = loadStudents();
 
-	vector<StudentDetails> newListOfStudents = loadNewStudents(listOfStudents, studentDetailsToDelete);
+	vector<StudentDetails> newListOfStudents = loadNewStudentsAfterDeleted(listOfStudents, studentDetailsToDelete);
 
 	writeNewListOfStudentsToFile(newListOfStudents);
 
@@ -1006,11 +1019,91 @@ void deleteStudent(StudentDetails& studentDetailsToDelete) {
 	cout << '\n' << "Student successfully deleted!" << '\n';
 }
 
-void editStudentDetails() {
+void editStudentDetail(StudentDetails currentStudentDetails) {
+	StudentDetails newStudentDetails = currentStudentDetails;
+	int category;
+	string newDetail;
+	vector<StudentDetails> listOfStudents = loadStudents();
 
+	cin >> category;
+
+	cout << '\n' << "Enter new detail: ";
+	cin >> newDetail;
+
+	switch (category) {
+	case 0:
+		clear();
+		return;
+	case 1:
+		newStudentDetails.lastName = newDetail;
+		break;
+	case 2:
+		newStudentDetails.firstName = newDetail;
+		break;
+	case 3:
+		newStudentDetails.yearNum = stoi(newDetail);
+		break;
+	case 4:
+		newStudentDetails.fatherName = newDetail;
+		break;
+	case 5:
+		newStudentDetails.motherName = newDetail;
+		break;
+	case 6:
+		newStudentDetails.teacherID = stoi(newDetail);
+		break;
+	case 7:
+		newStudentDetails.mathsGrade = stoi(newDetail);
+		break;
+	case 8:
+		newStudentDetails.englishGrade = stoi(newDetail);
+		break;
+	case 9:
+		newStudentDetails.scienceGrade = stoi(newDetail);
+		break;
+	case 10:
+		newStudentDetails.chemistryGrade = stoi(newDetail);
+		break;
+	case 11:
+		newStudentDetails.historyGrade = stoi(newDetail);
+		break;
+	case 12:
+		newStudentDetails.overallGrade = stoi(newDetail);
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		editStudentDetail(newStudentDetails);
+	}
+
+	vector<StudentDetails> newListOfStudents = loadNewStudentsAfterEdited(listOfStudents, newStudentDetails, currentStudentDetails);
+
+	writeNewListOfStudentsToFile(newListOfStudents);
+
+	clear();
+	cout << '\n' << "Student detail changed!" << '\n';
 }
 
-void printEditStudentMenu(StudentDetails& studentDetails) {
+void printEditMenu(StudentDetails& studentDetails) {
+	string studentName = studentDetails.firstName + " " + studentDetails.lastName;
+
+	clear();
+	line();
+	cout << "EDIT "<< uppercase(studentName) << "'S DETAILS";
+	line();
+
+	printStudentDetails(studentDetails);
+
+	cout << '\n' << "What do you want to edit?" << '\n' << '\n';
+	
+	for (size_t i = 0; i < g_columnNames.size(); i++) {
+		cout << "[" << uppercase(g_columnNames[i]) << " = " << i + 1 << "] ";
+	}
+	cout << "[BACK = 0]" << '\n';
+
+	editStudentDetail(studentDetails);
+}
+
+void printEditOrDeleteMenu(StudentDetails& studentDetails) {
 	vector<StudentDetails> listOfStudents = loadStudents();
 	int userChoice;
 	int confirm;
@@ -1022,7 +1115,6 @@ void printEditStudentMenu(StudentDetails& studentDetails) {
 	string studentName = firstName + " " + lastName;
 
 	cout << '\n' << "What do you want to do?" << '\n';
-
 	cout << '\n' << "[EDIT = 1] [DELETE = 2] [BACK = 0]" << '\n';
 	cin >> userChoice;
 
@@ -1031,7 +1123,7 @@ void printEditStudentMenu(StudentDetails& studentDetails) {
 		clear();
 		return;
 	case 1:
-		editStudentDetails();
+		printEditMenu(studentDetails);
 		break;
 	case 2:
 		cout << '\n' << "Are you sure you want to delete " << studentName << "?" << '\n';
@@ -1045,7 +1137,7 @@ void printEditStudentMenu(StudentDetails& studentDetails) {
 		break;
 	default:
 		cout << '\n' << "Please choose one of the options" << '\n';
-		printEditStudentMenu(studentDetails);
+		printEditOrDeleteMenu(studentDetails);
 	}
 }
 
@@ -1121,7 +1213,7 @@ void getAdminMenuInput(AccountDetails& userAccountDetails) {
 			break;
 		}
 		printStudentDetails(studentDetails);
-		printEditStudentMenu(studentDetails);
+		printEditOrDeleteMenu(studentDetails);
 		break;
 	case 3:
 		addNewStudentThenReturn(randomID);
