@@ -26,9 +26,6 @@ namespace stdprefixes {
 
 using namespace stdprefixes;
 
-void printMainMenuOptions();
-void getMainMenuInput();
-
 struct AccountDetails {
 	int ID = 0;
 	string username;
@@ -77,6 +74,16 @@ string g_teachersFileName = ("teacher-database.csv");
 int g_columnWidth = 13;
 vector<string> g_columnNames = { "surname", "name", "year", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
 
+void printTeacherMenu(AccountDetails& userAccountDetails);
+void printAdminMenu(AccountDetails& userAccountDetails);
+void printStudentMenu(AccountDetails& userAccountDetails);
+void printEditGradesMenu(StudentDetails& studentDetails);
+void printEditOrDeleteMenu(StudentDetails studentDetails);
+void printEditGradesMenu(StudentDetails& studentDetails);
+void printStartMenu();
+void printThemeMenu();
+void switchToAccount(AccountDetails& userAccount);
+
 //____________________________________________________________________________________________________________________________
 // FORMATTING
 //____________________________________________________________________________________________________________________________
@@ -110,12 +117,19 @@ void setStyleDefault() {
 	wcscpy_s(cfi.FaceName, L"Cascadia");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
+
 void clear() {
 	cout << "\x1B[2J\x1B[H";
 }
 
 void line() {
 	cout << '\n' << "____________________________________________________________" << '\n' << '\n';
+}
+
+void fullscreen() {
+	system("mode con COLS=700");
+	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
+	SendMessage(GetConsoleWindow(), WM_SYSKEYDOWN, VK_RETURN, 0x20000000);
 }
 
 string lowercase(string inputString) {
@@ -157,16 +171,28 @@ string column(string inputString) {
 	// makes first letter capital
 	inputString[0] = toupper(inputString[0]);
 
-	for (size_t i = 0; i < inputString.length(); i++) {
-		outputString += inputString[i];
-		columnLength--;
+	// if string is bigger then column length then itll cut it off
+	if (inputString.length() > columnLength) {
+		int i = 0;
+		while (columnLength-2 != 0) {
+			outputString += inputString[i];
+			columnLength--;
+			i++;
+		}
+		return outputString += "..|";
 	}
+	else {
+		for (size_t i = 0; i < inputString.length(); i++) {
+			outputString += inputString[i];
+			columnLength--;
+		}
 
-	while (columnLength != 0) {
-		outputString += " ";
-		columnLength--;
+		while (columnLength != 0) {
+			outputString += " ";
+			columnLength--;
+		}
 	}
-
+	
 	return outputString += "|";
 }
 
@@ -181,10 +207,29 @@ string printTableLine() {
 	return outputString;
 }
 
+int checkInput() {
+	string userChoiceString;
+
+	cin >> userChoiceString;
+
+	if (userChoiceString.length() > 1) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		return NULL;
+	}
+	else if (!isdigit(userChoiceString[0])) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		return NULL;
+	}
+	int userChoice = stoi(userChoiceString);
+
+	return userChoice;
+}
+
 //____________________________________________________________________________________________________________________________
 // LOADING
 //____________________________________________________________________________________________________________________________
-
 
 vector<StudentDetails> loadStudents() {
 	string fileRow;
@@ -418,7 +463,6 @@ vector<StudentDetails> loadClass(TeacherDetails teacher) {
 // WRITING
 //____________________________________________________________________________________________________________________________
 
-
 void writeNewListOfAccountsToFile(vector<AccountDetails> newListOfAccounts) {
 	string tempAccountsFile = "temp-" + g_accountsFileName;
 	char* accountsFileNamePtr = &g_accountsFileName[0];
@@ -532,9 +576,8 @@ void writeNewStudentToDabase(StudentDetails& newStudentDetails) {
 }
 
 //____________________________________________________________________________________________________________________________
-// REGISTER
+// ADD
 //____________________________________________________________________________________________________________________________
-
 
 int chooseTeacher(vector<TeacherDetails>& listOfTeachers) {
 	int counter = 1;
@@ -658,7 +701,7 @@ AccountDetails getNewAccountDetails(int accountType) {
 	return newAccountDetails;
 }
 
-void addNewAccountThenReturn(int randomID) {
+void addNewAccount(int randomID) {
 	int userChoice;
 	AccountDetails newAccountDetails;
 	TeacherDetails newTeacherDetails;
@@ -711,14 +754,14 @@ void addNewAccountThenReturn(int randomID) {
 		break;
 	default:
 		cout << '\n' << "Please choose one of the options" << '\n';
-		addNewAccountThenReturn(randomID);
+		addNewAccount(randomID);
 	}
 
 	writeNewAccountToDabase(newAccountDetails);
 	clear();
 }
 
-void addNewStudentThenReturn(int& randomID) {
+void addNewStudent(int& randomID) {
 	AccountDetails newAccountDetails;
 	StudentDetails newStudentDetails;
 
@@ -741,9 +784,8 @@ void addNewStudentThenReturn(int& randomID) {
 	cout << "Note: Student's default login details are their first name and last name. This can be changed later" << '\n';
 }
 
-
 //____________________________________________________________________________________________________________________________
-// ACCOUNT OPTIONS
+// ACCOUNT CONTROLS
 //____________________________________________________________________________________________________________________________
 
 void changeLoginDetails(AccountDetails& currentLoginDetails) {
@@ -774,67 +816,6 @@ void changeLoginDetails(AccountDetails& currentLoginDetails) {
 
 	clear();
 	cout << '\n' << "Details successfully changed!" << '\n';
-}
-
-void editStudentDetail(StudentDetails currentStudentDetails) {
-	StudentDetails newStudentDetails = currentStudentDetails;
-	int category;
-	string newDetail;
-	vector<StudentDetails> listOfStudents = loadStudents();
-
-	cin >> category;
-
-	cout << '\n' << "Enter new detail: ";
-	cin >> newDetail;
-
-	switch (category) {
-	case 0:
-		clear();
-		return;
-	case 1:
-		newStudentDetails.lastName = newDetail;
-		break;
-	case 2:
-		newStudentDetails.firstName = newDetail;
-		break;
-	case 3:
-		newStudentDetails.yearNum = stoi(newDetail);
-		break;
-	case 4:
-		newStudentDetails.fatherName = newDetail;
-		break;
-	case 5:
-		newStudentDetails.motherName = newDetail;
-		break;
-	case 6:
-		newStudentDetails.teacherID = stoi(newDetail);
-		break;
-	case 7:
-		newStudentDetails.mathsGrade = stoi(newDetail);
-		break;
-	case 8:
-		newStudentDetails.englishGrade = stoi(newDetail);
-		break;
-	case 9:
-		newStudentDetails.scienceGrade = stoi(newDetail);
-		break;
-	case 10:
-		newStudentDetails.chemistryGrade = stoi(newDetail);
-		break;
-	case 11:
-		newStudentDetails.historyGrade = stoi(newDetail);
-		break;
-	default:
-		cout << '\n' << "Please choose one of the options" << '\n';
-		editStudentDetail(newStudentDetails);
-	}
-
-	vector<StudentDetails> newListOfStudents = loadNewStudentsAfterEdited(listOfStudents, newStudentDetails, currentStudentDetails);
-
-	writeNewListOfStudentsToFile(newListOfStudents);
-
-	clear();
-	cout << '\n' << "Student detail changed!" << '\n';
 }
 
 void printStudentDetails(StudentDetails& student) {
@@ -871,9 +852,22 @@ void printStudentDetails(StudentDetails& student) {
 	// FYI: "column" and "title" functions set the column size
 }
 
-//____________________________________________________________________________________________________________________________
-// ADMIN
-//____________________________________________________________________________________________________________________________
+void switchToAccount(AccountDetails& userAccount) {
+	switch (userAccount.accountType) {
+	case 1:
+		printStudentMenu(userAccount);
+		return;
+	case 2:
+		printTeacherMenu(userAccount);
+		break;
+	case 3:
+		printAdminMenu(userAccount);
+		break;
+	default:
+		cout << "No account type";
+		break;
+	}
+}
 
 StudentDetails findStudentWithName(StudentDetails& studentDetailsToFind) {
 	vector<StudentDetails> listOfStudents = loadStudents();
@@ -881,7 +875,7 @@ StudentDetails findStudentWithName(StudentDetails& studentDetailsToFind) {
 
 	// loops through each student in database
 	for (StudentDetails student : listOfStudents) {
-		if (studentDetailsToFind.firstName == student.firstName && studentDetailsToFind.lastName == student.lastName) {
+		if (lowercase(studentDetailsToFind.firstName) == student.firstName && lowercase(studentDetailsToFind.lastName) == student.lastName) {
 			return student;
 		}
 	}
@@ -892,7 +886,6 @@ StudentDetails findStudentWithName(StudentDetails& studentDetailsToFind) {
 StudentDetails getInputToFindStudent() {
 	StudentDetails studentDetailsToFind;
 	vector<StudentDetails> listOfStudents = loadStudents();
-	StudentDetails student;
 
 	cout << '\n' << "Enter the details of the student you want to find" << '\n';
 	cout << '\n' << "Last name: ";
@@ -900,7 +893,7 @@ StudentDetails getInputToFindStudent() {
 	cout << "First name: ";
 	cin >> studentDetailsToFind.firstName;
 
-	student = findStudentWithName(studentDetailsToFind);
+	StudentDetails student = findStudentWithName(studentDetailsToFind);
 
 	if (!student.isValid()) {
 		clear();
@@ -910,6 +903,10 @@ StudentDetails getInputToFindStudent() {
 
 	return student;
 }
+
+//____________________________________________________________________________________________________________________________
+// ADMIN
+//____________________________________________________________________________________________________________________________
 
 void deleteStudent(StudentDetails& studentDetailsToDelete) {
 	vector<StudentDetails> listOfStudents = loadStudents();
@@ -930,45 +927,7 @@ void printEditMenuForAdmin(StudentDetails& studentDetails) {
 	}
 	cout << "[BACK = 0]" << '\n';
 
-	editStudentDetail(studentDetails);
-}
-
-void printEditOrDeleteMenu(StudentDetails& studentDetails) {
-	vector<StudentDetails> listOfStudents = loadStudents();
-	int userChoice;
-	int confirm;
-
-	string firstName = studentDetails.firstName;
-	firstName[0] = toupper(firstName[0]);
-	string lastName = studentDetails.lastName;
-	lastName[0] = toupper(lastName[0]);
-	string studentName = firstName + " " + lastName;
-
-	cout << '\n' << "What do you want to do?" << '\n';
-	cout << '\n' << "[EDIT = 1] [DELETE = 2] [BACK = 0]" << '\n';
-	cin >> userChoice;
-
-	switch (userChoice) {
-	case 0:
-		clear();
-		return;
-	case 1:
-		printEditMenuForAdmin(studentDetails);
-		break;
-	case 2:
-		cout << '\n' << "Are you sure you want to delete " << studentName << "?" << '\n';
-		cout << '\n' << "[YES = 1] [NO = 2]" << '\n';
-		cin >> confirm;
-		if (confirm == 2) {
-			clear();
-			return;
-		}
-		deleteStudent(studentDetails);
-		break;
-	default:
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printEditOrDeleteMenu(studentDetails);
-	}
+	printEditOrDeleteMenu(studentDetails);
 }
 
 void printAllStudents(vector<StudentDetails>& listOfStudents) {
@@ -1007,24 +966,66 @@ void printAllStudents(vector<StudentDetails>& listOfStudents) {
 	// FYI: "column" and "category" functions set the column size
 }
 
-void editStudentDetailThenReturn(StudentDetails studentDetails) {
-	string studentName = studentDetails.firstName + " " + studentDetails.lastName;
+void printEditOrDeleteMenu(StudentDetails studentDetails) {
+	vector<StudentDetails> listOfStudents = loadStudents();
+	int confirm;
+	
+	string firstName = studentDetails.firstName;
+	string lastName = studentDetails.lastName;
+	firstName[0] = toupper(firstName[0]);
+	lastName[0] = toupper(lastName[0]);
+	string studentName = firstName + " " + lastName; // TitleCase
 
 	clear();
 	line();
 	cout << uppercase(studentName) << "'S DETAILS";
 	line();
 
-
 	printStudentDetails(studentDetails);
-	printEditOrDeleteMenu(studentDetails);
-}
 
-void printAdminMenu(AccountDetails& userAccountDetails);
+	cout << '\n' << "What do you want to do?" << '\n';
+	cout << '\n' << "[EDIT = 1] [DELETE = 2] [BACK = 0]" << '\n';
+
+	string userChoiceString;
+	cin >> userChoiceString;
+
+	if (userChoiceString.length() > 1) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printEditOrDeleteMenu(studentDetails);
+	}
+	else if (!isdigit(userChoiceString[0])) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printEditOrDeleteMenu(studentDetails);
+	}
+	int userChoice = stoi(userChoiceString);
+
+	switch (userChoice) {
+	case 0:
+		clear();
+		return;
+	case 1:
+		printEditMenuForAdmin(studentDetails);
+		break;
+	case 2:
+		cout << '\n' << "Are you sure you want to delete " << studentName << "?" << '\n';
+		cout << '\n' << "[YES = 1] [NO = 2]" << '\n';
+		cin >> confirm;
+		if (confirm == 2) {
+			clear();
+			return;
+		}
+		deleteStudent(studentDetails);
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printEditOrDeleteMenu(studentDetails);
+	}
+}
 
 void getAdminMenuInput(AccountDetails& userAccountDetails) {
 	srand((unsigned int)time(0));
-	int userChoice;
 	bool isAvaliableID = false;
 	int randomID = rand() & 1000;
 	vector<AccountDetails> listOfAccounts = loadAccounts();
@@ -1040,7 +1041,20 @@ void getAdminMenuInput(AccountDetails& userAccountDetails) {
 		isAvaliableID = true;
 	}
 
-	cin >> userChoice;
+	string userChoiceString;
+	cin >> userChoiceString;
+
+	if (userChoiceString.length() > 1) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printAdminMenu(userAccountDetails);
+	}
+	else if (!isdigit(userChoiceString[0])) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printAdminMenu(userAccountDetails);
+	}
+	int userChoice = stoi(userChoiceString);
 
 	switch (userChoice) {
 	case 0:
@@ -1055,13 +1069,13 @@ void getAdminMenuInput(AccountDetails& userAccountDetails) {
 		if (!studentDetails.isValid()) {
 			break;
 		}
-		editStudentDetailThenReturn(studentDetails);
+		printEditOrDeleteMenu(studentDetails);
 		break;
 	case 3:
-		addNewStudentThenReturn(randomID);
+		addNewStudent(randomID);
 		break;
 	case 4:
-		addNewAccountThenReturn(randomID);
+		addNewAccount(randomID);
 		break;
 	default:
 		cout << '\n' << "Please choose one of the options" << '\n';
@@ -1083,21 +1097,19 @@ void printAdminMenu(AccountDetails& userAccountDetails) {
 	getAdminMenuInput(userAccountDetails);
 }
 
-
 //____________________________________________________________________________________________________________________________
-// STUDENT
+// TEACHER
 //____________________________________________________________________________________________________________________________
 
-StudentDetails findStudentWithID(int& accountID) {
-	vector<StudentDetails> listOfStudents = loadStudents();
-	StudentDetails inValid;
+TeacherDetails findTeacherWithID(int& accountID) {
+	vector<TeacherDetails> listOfTeachers = loadTeachers();
+	TeacherDetails inValid;
 
-	// loops through each student in database
-	for (StudentDetails student : listOfStudents) {
-		// finds student ID which matches account ID
-		
-		if (accountID == student.ID) {
-			return student;
+	// loops through each teacher in database
+	for (TeacherDetails teacher : listOfTeachers) {
+		// finds account ID which matches teacher ID
+		if (accountID == teacher.ID) {
+			return teacher;
 		}
 	}
 
@@ -1105,110 +1117,105 @@ StudentDetails findStudentWithID(int& accountID) {
 	return inValid;
 }
 
-void printStudentMenu(AccountDetails& userAccountDetails);
-
-void getStudentMenuInput(AccountDetails& userAccountDetails) {
-	int userChoice;
-
-	cin >> userChoice;
-
-	switch (userChoice) {
-	case 0:
-		clear();
-		cout << '\n' << "Logged out!" << '\n';
-		return;
-	case 1:
-		changeLoginDetails(userAccountDetails);
-		return;
-	default:
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printStudentMenu(userAccountDetails);
-	}
-}
-
-void printStudentMenu(AccountDetails& userAccountDetails) {
-	StudentDetails userStudentDetails = findStudentWithID(userAccountDetails.ID);
-
-	if (!userAccountDetails.isValid()) {
-		cout << '\n' << "No student found linked to this account" << '\n';
-	}
-
-	line();
-	cout << uppercase(userStudentDetails.firstName) << "'S PERSONAL INFORMATION";
-	line();
-
-	printStudentDetails(userStudentDetails);
-	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]" << '\n';
-
-	getStudentMenuInput(userAccountDetails);
-}
-
-//____________________________________________________________________________________________________________________________
-// TEACHER
-//____________________________________________________________________________________________________________________________
-
-
-
-void editStudentReport(StudentDetails currentStudentDetails) {
-	StudentDetails newStudentDetails = currentStudentDetails;
-	int category;
-	string newDetail;
+StudentDetails getNewGrades(StudentDetails studentDetails, int chosenCategory) {
+	StudentDetails newStudentDetails = studentDetails;
+	StudentDetails inValid;
 	vector<StudentDetails> listOfStudents = loadStudents();
+	
+	cout << '\n' << "Enter new grade: ";
+	
+	string newGradeString;
+	cin >> newGradeString;
 
-	cin >> category;
+	int newGrade = stoi(newGradeString);
 
-	cout << '\n' << "Enter new detail: ";
-	cin >> newDetail;
+	if (newGrade > 20) {
+		clear();
+		cout << '\n' << "The max grade is 20" << '\n';
+		printEditGradesMenu(newStudentDetails);
+	}
+	else if (newGrade < 0) {
+		clear();
+		cout << '\n' << "Grade cannot be blow 0" << '\n';
+		printEditGradesMenu(newStudentDetails);
+	}
 
-	switch (category) {
+	switch (chosenCategory) {
 	case 0:
 		clear();
-		return;
+		return inValid;
 	case 1:
-		newStudentDetails.mathsGrade = stoi(newDetail);
+		newStudentDetails.mathsGrade = newGrade;
 		break;
 	case 2:
-		newStudentDetails.englishGrade = stoi(newDetail);
+		newStudentDetails.englishGrade = newGrade;
 		break;
 	case 3:
-		newStudentDetails.scienceGrade = stoi(newDetail);
+		newStudentDetails.scienceGrade = newGrade;
 		break;
 	case 4:
-		newStudentDetails.chemistryGrade = stoi(newDetail);
+		newStudentDetails.chemistryGrade = newGrade;
 		break;
 	case 5:
-		newStudentDetails.historyGrade = stoi(newDetail);
+		newStudentDetails.historyGrade = newGrade;
 		break;
 	default:
 		cout << '\n' << "Please choose one of the options" << '\n';
-		editStudentReport(newStudentDetails);
+		printEditGradesMenu(newStudentDetails);
 	}
 
-	vector<StudentDetails> newListOfStudents = loadNewStudentsAfterEdited(listOfStudents, newStudentDetails, currentStudentDetails);
+	return newStudentDetails;
+}
 
+void changeGrade(StudentDetails studentDetails){
+	vector<StudentDetails> listOfStudents = loadStudents();
+
+	string userChoiceString;
+	cin >> userChoiceString;
+
+	if (userChoiceString.length() > 1) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printEditGradesMenu(studentDetails);
+	}
+	else if (!isdigit(userChoiceString[0])) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printEditGradesMenu(studentDetails);
+	}
+	int chosenCategory = stoi(userChoiceString);
+
+	StudentDetails newStudentDetails = getNewGrades(studentDetails, chosenCategory);
+	if (!newStudentDetails.isValid()) {
+		return;
+	}
+
+	vector<StudentDetails> newListOfStudents = loadNewStudentsAfterEdited(listOfStudents, newStudentDetails, studentDetails);
+	
 	writeNewListOfStudentsToFile(newListOfStudents);
 
 	clear();
 	cout << '\n' << "Student detail changed!" << '\n';
 }
 
-void editStudentReportThenReturn(StudentDetails& studentDetails) {
+void printEditGradesMenu(StudentDetails& studentDetails) {
 	string studentName = studentDetails.firstName + " " + studentDetails.lastName;
 
-	clear();
 	line();
-	cout << "EDIT " << uppercase(studentName) << "'S REPORTS";
+	cout << "EDIT " << uppercase(studentName) << "'S GRADES";
 	line();
 
 	printStudentDetails(studentDetails);
+
 	cout << '\n' << "What do you want to edit?" << '\n' << '\n';
 
+	// prints out only the reports as options
 	for (size_t i = 6; i < g_columnNames.size() - 1; i++) {
 		cout << "[" << uppercase(g_columnNames[i]) << " = " << i - 5 << "] ";;
 	}
 	cout << "[BACK = 0]" << '\n';
 
-	editStudentReport(studentDetails);
+	changeGrade(studentDetails);
 }
 
 void printClassDetails(vector<StudentDetails>& listOfStudentsInClass) {
@@ -1240,29 +1247,23 @@ void printClassDetails(vector<StudentDetails>& listOfStudentsInClass) {
 	// FYI: "column" and "category" functions set the column size
 }
 
-TeacherDetails findTeacher(int& accountID) {
-	vector<TeacherDetails> listOfTeachers = loadTeachers();
-	TeacherDetails inValid;
-
-	// loops through each teacher in database
-	for (TeacherDetails teacher : listOfTeachers) {
-		// finds account ID which matches teacher ID
-		if (accountID == teacher.ID) {
-			return teacher;
-		}
-	}
-
-	// should never happen
-	return inValid;
-}
-
-void printTeacherMenu(AccountDetails& userAccountDetails);
-
 void getTeacherMenuInput(AccountDetails& userAccountDetails, vector<StudentDetails>& listOfStudentsInClass) {
 	StudentDetails studentDetails;
-	int userChoice;
 
-	cin >> userChoice;
+	string userChoiceString;
+	cin >> userChoiceString;
+
+	if (userChoiceString.length() > 1) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printTeacherMenu(userAccountDetails);
+	}
+	else if (!isdigit(userChoiceString[0])) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printTeacherMenu(userAccountDetails);
+	}
+	int userChoice = stoi(userChoiceString);
 
 	switch (userChoice) {
 	case 0:
@@ -1277,17 +1278,19 @@ void getTeacherMenuInput(AccountDetails& userAccountDetails, vector<StudentDetai
 		if (!studentDetails.isValid()) {
 			break;
 		}
-		editStudentReportThenReturn(studentDetails);
+		clear();
+		printEditGradesMenu(studentDetails);
 		break;
 	default:
+		clear();
 		cout << '\n' << "Please choose one of the options" << '\n';
-		printStudentMenu(userAccountDetails);
+		break;
 	}
 	printTeacherMenu(userAccountDetails);
 }
 
 void printTeacherMenu(AccountDetails& userAccountDetails) {
-	TeacherDetails userTeacherDetails = findTeacher(userAccountDetails.ID);
+	TeacherDetails userTeacherDetails = findTeacherWithID(userAccountDetails.ID);
 	vector<StudentDetails> listOfStudentsInClass = loadClass(userTeacherDetails);
 
 	if (!userTeacherDetails.isValid()) {
@@ -1304,25 +1307,72 @@ void printTeacherMenu(AccountDetails& userAccountDetails) {
 	getTeacherMenuInput(userAccountDetails, listOfStudentsInClass);
 }
 
-
 //____________________________________________________________________________________________________________________________
+// STUDENT
 //____________________________________________________________________________________________________________________________
 
-void switchToAccount(AccountDetails& userAccount) {
-	switch (userAccount.accountType) {
-	case 1:
-		printStudentMenu(userAccount);
-		return;
-	case 2:
-		printTeacherMenu(userAccount);
-		break;
-	case 3:
-		printAdminMenu(userAccount);
-		break;
-	default:
-		cout << "No account type";
-		break;
+StudentDetails findStudentWithID(int& accountID) {
+	vector<StudentDetails> listOfStudents = loadStudents();
+	StudentDetails inValid;
+
+	// loops through each student in database
+	for (StudentDetails student : listOfStudents) {
+		// finds student ID which matches account ID
+
+		if (accountID == student.ID) {
+			return student;
+		}
 	}
+
+	// should never happen
+	return inValid;
+}
+
+void getStudentMenuInput(AccountDetails& userAccountDetails) {
+	string userChoiceString;
+	cin >> userChoiceString;
+
+	if (userChoiceString.length() > 1) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printStudentMenu(userAccountDetails);
+	}
+	else if (!isdigit(userChoiceString[0])) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printStudentMenu(userAccountDetails);
+	}
+	int userChoice = stoi(userChoiceString);
+
+	switch (userChoice) {
+	case 0:
+		clear();
+		cout << '\n' << "Logged out!" << '\n';
+		return;
+	case 1:
+		changeLoginDetails(userAccountDetails);
+		return;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printStudentMenu(userAccountDetails);
+	}
+}
+
+void printStudentMenu(AccountDetails& userAccountDetails) {
+	StudentDetails userStudentDetails = findStudentWithID(userAccountDetails.ID);
+
+	if (!userAccountDetails.isValid()) {
+		cout << '\n' << "No student found linked to this account" << '\n';
+	}
+
+	line();
+	cout << uppercase(userStudentDetails.firstName) << "'S PERSONAL INFORMATION";
+	line();
+
+	printStudentDetails(userStudentDetails);
+	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]" << '\n';
+
+	getStudentMenuInput(userAccountDetails);
 }
 
 //____________________________________________________________________________________________________________________________
@@ -1359,7 +1409,6 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	int loginAttempts = 3;
 	AccountDetails authenticatedUserAccountDetails;
 	
-
 	clear();
 	line();
 	cout << "LOGIN";
@@ -1385,24 +1434,21 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	return authenticatedUserAccountDetails;
 }
 
-void getMainMenuInput();
-
-void printMainMenuOptions() {
-	line();
-	cout << "WELLINGTON HIGH SCHOOL STUDENT INFORMATION SYSTEM";
-	line();
-
-	cout << '\n' << "Please input the number to the following option" << '\n';
-	cout << '\n' << "[LOGIN = 1] [THEME = 2] [EXIT = 0]" << '\n';
-	getMainMenuInput();
-}
-
-void printThemeMenu();
-
 void getThemeMenuInput() {
-	int userChoice;
+	string userChoiceString;
+	cin >> userChoiceString;
 
-	cin >> userChoice;
+	if (userChoiceString.length() > 1) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printThemeMenu();
+	}
+	else if (!isdigit(userChoiceString[0])) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printThemeMenu();
+	}
+	int userChoice = stoi(userChoiceString);
 
 	switch (userChoice) {
 	case 0:
@@ -1419,7 +1465,7 @@ void getThemeMenuInput() {
 		break;
 	default:
 		cout << '\n' << "Please choose one of the options" << '\n';
-		getThemeMenuInput();
+		printThemeMenu();
 	}
 
 	printThemeMenu();
@@ -1437,11 +1483,23 @@ void printThemeMenu() {
 	getThemeMenuInput();
 }
 
-void getMainMenuInput() {
-	int userChoice;
+void getStartMenuInput() {
 	AccountDetails userAccountDetails;
 
-	cin >> userChoice;
+	string userChoiceString;
+	cin >> userChoiceString;
+
+	if (userChoiceString.length() > 1) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printStartMenu();
+	}
+	else if (!isdigit(userChoiceString[0])) {
+		clear();
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printStartMenu();
+	}
+	int userChoice = stoi(userChoiceString);
 
 	switch (userChoice) {
 	case 0:
@@ -1459,13 +1517,25 @@ void getMainMenuInput() {
 		printThemeMenu();
 		break;
 	default:
+		clear();
 		cout << '\n' << "Please choose one of the options" << '\n';
-		getMainMenuInput();
+		break;
 	}
-	printMainMenuOptions();
+	printStartMenu();
+}
+
+void printStartMenu() {
+	line();
+	cout << "WELLINGTON HIGH SCHOOL STUDENT INFORMATION SYSTEM";
+	line();
+
+	cout << '\n' << "Please input the number to the following option" << '\n';
+	cout << '\n' << "[LOGIN = 1] [THEME = 2] [EXIT = 0]" << '\n';
+	getStartMenuInput();
 }
 
 int main() {
+	fullscreen();
 	setStyleDefault();
-	printMainMenuOptions();
+	printStartMenu();
 }
