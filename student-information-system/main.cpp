@@ -54,6 +54,10 @@ struct StudentDetails {
 	int chemistryGrade = 0;
 	int historyGrade = 0;
 	int overallGrade = 0;
+
+	bool isValid() {
+		return firstName != "";
+	};
 };
 
 struct TeacherDetails {
@@ -91,7 +95,7 @@ void setStyleModern() {
 	system("color f0");
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
-	cfi.dwFontSize.Y = 24;
+	cfi.dwFontSize.Y = 20;
 	cfi.FontWeight = FW_BOLD;
 	wcscpy_s(cfi.FaceName, L"Consolas");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
@@ -101,7 +105,7 @@ void setStyleDefault() {
 	system("color 0f");
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
-	cfi.dwFontSize.Y = 22;
+	cfi.dwFontSize.Y = 18;
 	cfi.FontWeight = FW_NORMAL;
 	wcscpy_s(cfi.FaceName, L"Cascadia");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
@@ -196,7 +200,7 @@ vector<StudentDetails> loadStudents() {
 	studentsFile.open(g_studentsFileName, ios::in | ios::app);
 
 	if (!studentsFile.is_open()) {
-		throw std::runtime_error("Warning file is not open");
+		cout << "file not open";
 	}
 
 	// loops through each row of student file
@@ -268,7 +272,7 @@ vector<AccountDetails> loadAccounts() {
 	accountsFile.open(g_accountsFileName, ios::in | ios::app);
 
 	if (!accountsFile.is_open()) {
-		throw std::runtime_error("Warning file is not open");
+		cout << "file not open";
 	}
 
 	// loops through each row of accounts file
@@ -313,7 +317,7 @@ vector<TeacherDetails> loadTeachers() {
 	teachersFile.open(g_teachersFileName, ios::in | ios::app);
 
 	if (!teachersFile.is_open()) {
-		throw std::runtime_error("Warning file is not open");
+		cout << "file not open";
 	}
 
 	// loops through each row of accounts file
@@ -349,13 +353,13 @@ vector<TeacherDetails> loadTeachers() {
 	return listOfTeachers;
 }
 
-vector<AccountDetails> loadNewAccounts(vector<AccountDetails> listOfAccounts, AccountDetails replacementDetails, AccountDetails currentLoginDetails) {
+vector<AccountDetails> loadNewAccounts(vector<AccountDetails>& listOfAccounts, AccountDetails& replacementDetails, AccountDetails& currentLoginDetails) {
 	vector<AccountDetails> newListOfAccounts;
 
 	// loops through each account in database
 	for (AccountDetails account : listOfAccounts) {
 		// finds current account details and skips
-		if (account.username == currentLoginDetails.username && account.password == currentLoginDetails.password) {
+		if (account.ID == currentLoginDetails.ID) {
 			continue;
 		}
 		// add all accounts into new vector, exculding current details
@@ -365,6 +369,22 @@ vector<AccountDetails> loadNewAccounts(vector<AccountDetails> listOfAccounts, Ac
 	newListOfAccounts.push_back(replacementDetails);
 
 	return newListOfAccounts;
+}
+
+vector<StudentDetails> loadNewStudents(vector<StudentDetails>& listOfStudents, StudentDetails& studentDetailsToDelete) {
+	vector<StudentDetails> newListOfStudents;
+
+	// loops through each Student in database
+	for (StudentDetails student : listOfStudents) {
+		// finds current Student details and skips
+		if (student.ID == studentDetailsToDelete.ID) {
+			continue;
+		}
+		// add all Students into new vector, exculding current details
+		newListOfStudents.push_back(student);
+	}
+
+	return newListOfStudents;
 }
 
 vector<StudentDetails> loadClass(TeacherDetails teacher) {
@@ -386,19 +406,22 @@ vector<StudentDetails> loadClass(TeacherDetails teacher) {
 //____________________________________________________________________________________________________________________________
 
 
-void writeNewAccountsToFile(vector<AccountDetails> newListOfAccounts) {
+void writeNewListOfAccountsToFile(vector<AccountDetails> newListOfAccounts) {
 	string tempAccountsFile = "temp-" + g_accountsFileName;
 	char* accountsFileNamePtr = &g_accountsFileName[0];
 	char* tempFileNamePtr = &tempAccountsFile[0];
 	fstream accountsFile(tempAccountsFile, ios::out);
 
 	if (!accountsFile.is_open()) {
-		throw std::runtime_error("Warning file is not open");
+		cout << "file not open";
 	}
 
 	// writes account details to file
 	for (AccountDetails account : newListOfAccounts) {
-		accountsFile << account.ID << "," << account.username << "," << account.password << "," << account.accountType << '\n';
+		accountsFile << account.ID << "," 
+			<< account.username << ","
+			<< account.password << ","
+			<< account.accountType << '\n';
 	}
 	accountsFile.close();
 
@@ -406,47 +429,79 @@ void writeNewAccountsToFile(vector<AccountDetails> newListOfAccounts) {
 	int x = rename(tempFileNamePtr, accountsFileNamePtr); //rename new file
 }
 
-void writeNewAccountToDabase(AccountDetails& newAccountDetails) {
-	fstream AccountsFile(g_accountsFileName, ios::in | ios::app);
+void writeNewListOfStudentsToFile(vector<StudentDetails>& newListOfStudents) {
+	string tempStudentsFile = "temp-" + g_studentsFileName;
+	char* studentsFileNamePtr = &g_studentsFileName[0];
+	char* tempFileNamePtr = &tempStudentsFile[0];
+	fstream studentsFile(tempStudentsFile, ios::out);
 
-	if (!AccountsFile.is_open()) {
-		throw std::runtime_error("Warning file is not open");
+	if (!studentsFile.is_open()) {
+		cout << "file not open";
+	}
+
+	// writes account details to file
+	for (StudentDetails student : newListOfStudents) {
+		studentsFile << student.ID << ","
+			<< student.lastName << ","
+			<< student.firstName << ","
+			<< student.yearNum << ","
+			<< student.fatherName << ","
+			<< student.motherName << ","
+			<< student.teacherID << ","
+			<< student.mathsGrade << ","
+			<< student.englishGrade << ","
+			<< student.scienceGrade << ","
+			<< student.chemistryGrade << ","
+			<< student.historyGrade << ","
+			<< student.overallGrade << '\n';
+	}
+	studentsFile.close();
+
+	remove(studentsFileNamePtr); // deleting original file
+	int x = rename(tempFileNamePtr, studentsFileNamePtr); //rename new file
+}
+
+void writeNewAccountToDabase(AccountDetails& newAccountDetails) {
+	fstream accountsFile(g_accountsFileName, ios::in | ios::app);
+
+	if (!accountsFile.is_open()) {
+		cout << "file not open";
 	}
 
 	// writes user input to file
-	AccountsFile << newAccountDetails.ID << ","
+	accountsFile << newAccountDetails.ID << ","
 		<< newAccountDetails.username << ","
 		<< newAccountDetails.password << ","
 		<< newAccountDetails.accountType << '\n';
 
-	AccountsFile.close();
+	accountsFile.close();
 }
 
 void writeNewTeacherToDabase(TeacherDetails& newTeacherDetails) {
-	fstream TeachersFile(g_teachersFileName, ios::in | ios::app);
+	fstream teachersFile(g_teachersFileName, ios::in | ios::app);
 
-	if (!TeachersFile.is_open()) {
-		throw std::runtime_error("Warning file is not open");
+	if (!teachersFile.is_open()) {
+		cout << "file not open";
 	}
 
 	// writes user input to file
-	TeachersFile << newTeacherDetails.ID << ","
+	teachersFile << newTeacherDetails.ID << ","
 		<< newTeacherDetails.title << ","
 		<< newTeacherDetails.firstName << ","
 		<< newTeacherDetails.lastName << '\n';
 
-	TeachersFile.close();
+	teachersFile.close();
 }
 
 void writeNewStudentToDabase(StudentDetails& newStudentDetails) {
-	fstream StudentsFile(g_studentsFileName, ios::in | ios::app);
+	fstream studentsFile(g_studentsFileName, ios::in | ios::app);
 
-	if (!StudentsFile.is_open()) {
-		throw std::runtime_error("Warning file is not open");
+	if (!studentsFile.is_open()) {
+		cout << "file not open";
 	}
 
 	// writes user input to file
-	StudentsFile << newStudentDetails.ID << ","
+	studentsFile << newStudentDetails.ID << ","
 		<< newStudentDetails.lastName << ","
 		<< newStudentDetails.firstName << ","
 		<< newStudentDetails.yearNum << ","
@@ -460,41 +515,7 @@ void writeNewStudentToDabase(StudentDetails& newStudentDetails) {
 		<< newStudentDetails.historyGrade << ","
 		<< newStudentDetails.overallGrade << '\n';
 
-	StudentsFile.close();
-}
-
-//____________________________________________________________________________________________________________________________
-// ACCOUNT OPTIONS
-//____________________________________________________________________________________________________________________________
-
-void changeLoginDetails(AccountDetails& currentLoginDetails) {
-	vector<AccountDetails> listOfAccounts = loadAccounts();
-	AccountDetails replacementDetails;
-
-	clear();
-	line();
-	cout << "CHANGE DETAILS";
-	line();
-
-	cout << '\n' << "Current login details" << '\n';
-	cout << '\n' << "Username: " << currentLoginDetails.username << '\n';
-	cout << "Password: " << currentLoginDetails.password << '\n';
-	cout << '\n' << "Enter new login details" << '\n';
-	cout << '\n' << "Username: ";
-	cin >> replacementDetails.username; // adds new login details to struct
-	cout << "Password: ";
-	cin >> replacementDetails.password;
-
-	// makes the rest of struct members = current struct members, otherwise they'll just be 0
-	replacementDetails.accountType = currentLoginDetails.accountType;
-	replacementDetails.ID = currentLoginDetails.ID;
-
-	vector<AccountDetails> newListOfAccounts = loadNewAccounts(listOfAccounts, replacementDetails, currentLoginDetails);
-
-	writeNewAccountsToFile(newListOfAccounts);
-
-	clear();
-	cout << '\n' << "Details successfully changed!" << '\n';
+	studentsFile.close();
 }
 
 //____________________________________________________________________________________________________________________________
@@ -590,7 +611,11 @@ TeacherDetails getNewTeacherDetails(int randomID) {
 	case 3:
 		newTeacherDetails.title = "ms. ";
 		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		getNewTeacherDetails(randomID);
 	}
+
 	cout << '\n' << "Enter the teacher's name" << '\n';
 	cout << '\n' << "First name: ";
 	cin >> newTeacherDetails.firstName;
@@ -703,13 +728,50 @@ void addNewStudentThenReturn(int& randomID) {
 	cout << "Note: Student's default login details are their first name and last name. This can be changed later" << '\n';
 }
 
+
 //____________________________________________________________________________________________________________________________
-// ACCOUNT MENU
+// ACCOUNT OPTIONS
 //____________________________________________________________________________________________________________________________
 
-void printPersonalDetails(StudentDetails& student) {
+void changeLoginDetails(AccountDetails& currentLoginDetails) {
+	vector<AccountDetails> listOfAccounts = loadAccounts();
+	AccountDetails replacementDetails;
+
+	clear();
+	line();
+	cout << "CHANGE DETAILS";
+	line();
+
+	cout << '\n' << "Current login details" << '\n';
+	cout << '\n' << "Username: " << currentLoginDetails.username << '\n';
+	cout << "Password: " << currentLoginDetails.password << '\n';
+	cout << '\n' << "Enter new login details" << '\n';
+	cout << '\n' << "Username: ";
+	cin >> replacementDetails.username; // adds new login details to struct
+	cout << "Password: ";
+	cin >> replacementDetails.password;
+
+	// makes the rest of struct members = current struct members, otherwise they'll just be 0
+	replacementDetails.accountType = currentLoginDetails.accountType;
+	replacementDetails.ID = currentLoginDetails.ID;
+
+	vector<AccountDetails> newListOfAccounts = loadNewAccounts(listOfAccounts, replacementDetails, currentLoginDetails);
+
+	writeNewListOfAccountsToFile(newListOfAccounts);
+
+	clear();
+	cout << '\n' << "Details successfully changed!" << '\n';
+}
+
+
+//____________________________________________________________________________________________________________________________
+// STUDENT
+//____________________________________________________________________________________________________________________________
+
+void printStudentDetails(StudentDetails& student) {
 	vector<TeacherDetails> listOfTeachers = loadTeachers();
 	string teacherName;
+
 	cout << '\n';
 	// prints the category of each collumn
 	for (size_t i = 0; i < g_columnNames.size(); i++) {
@@ -740,40 +802,14 @@ void printPersonalDetails(StudentDetails& student) {
 	// FYI: "column" and "title" functions set the column size
 }
 
-void printClassDetails(vector<StudentDetails>& listOfStudentsInClass) {
-	cout << '\n';
-	// prints the category of each collumn
-	for (size_t i = 0; i < g_columnNames.size(); i++) {
-		cout << category(g_columnNames[i]);
-	}
-	cout << '\n' << printTableLine() << '\n';
-
-	for (StudentDetails student : listOfStudentsInClass) {
-		//prints content for student
-		cout << column(student.lastName)
-			<< column(student.firstName)
-			<< column(to_string(student.yearNum))
-			<< column(student.fatherName)
-			<< column(student.motherName)
-			<< column(to_string(student.teacherID))
-			<< column(to_string(student.mathsGrade))
-			<< column(to_string(student.englishGrade))
-			<< column(to_string(student.scienceGrade))
-			<< column(to_string(student.chemistryGrade))
-			<< column(to_string(student.historyGrade))
-			<< column(to_string(student.overallGrade)) << '\n';
-	}
-	
-	// FYI: "column" and "category" functions set the column size
-}
-
-StudentDetails findStudent(int &accountID) {
+StudentDetails findStudentWithID(int& accountID) {
 	vector<StudentDetails> listOfStudents = loadStudents();
 	StudentDetails inValid;
 
 	// loops through each student in database
 	for (StudentDetails student : listOfStudents) {
 		// finds student ID which matches account ID
+		
 		if (accountID == student.ID) {
 			return student;
 		}
@@ -782,23 +818,6 @@ StudentDetails findStudent(int &accountID) {
 	// should never happen
 	return inValid;
 }
-
-TeacherDetails findTeacher(int& accountID) {
-	vector<TeacherDetails> listOfTeachers = loadTeachers();
-	TeacherDetails inValid;
-
-	// loops through each teacher in database
-	for (TeacherDetails teacher : listOfTeachers) {
-		// finds account ID which matches teacher ID
-		if (accountID == teacher.ID) {
-			return teacher;
-		}
-	}
-
-	// should never happen
-	return inValid;
-}
-
 
 void printStudentMenu(AccountDetails& userAccountDetails);
 
@@ -822,7 +841,7 @@ void getStudentMenuInput(AccountDetails& userAccountDetails) {
 }
 
 void printStudentMenu(AccountDetails& userAccountDetails) {
-	StudentDetails userStudentDetails = findStudent(userAccountDetails.ID);
+	StudentDetails userStudentDetails = findStudentWithID(userAccountDetails.ID);
 
 	if (!userAccountDetails.isValid()) {
 		cout << '\n' << "No student found linked to this account" << '\n';
@@ -832,10 +851,60 @@ void printStudentMenu(AccountDetails& userAccountDetails) {
 	cout << uppercase(userStudentDetails.firstName) << "'S PERSONAL INFORMATION";
 	line();
 
-	printPersonalDetails(userStudentDetails);
+	printStudentDetails(userStudentDetails);
 	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]" << '\n';
 
 	getStudentMenuInput(userAccountDetails);
+}
+
+//____________________________________________________________________________________________________________________________
+// TEACHER
+//____________________________________________________________________________________________________________________________
+
+
+void printClassDetails(vector<StudentDetails>& listOfStudentsInClass) {
+	string teacherName = "";
+
+	cout << '\n';
+	// prints the category of each collumn
+	for (size_t i = 0; i < g_columnNames.size(); i++) {
+		cout << category(g_columnNames[i]);
+	}
+	cout << '\n' << printTableLine() << '\n';
+
+	for (StudentDetails student : listOfStudentsInClass) {
+		//prints content for student
+		cout << column(student.lastName)
+			<< column(student.firstName)
+			<< column(to_string(student.yearNum))
+			<< column(student.fatherName)
+			<< column(student.motherName)
+			<< column(teacherName)
+			<< column(to_string(student.mathsGrade))
+			<< column(to_string(student.englishGrade))
+			<< column(to_string(student.scienceGrade))
+			<< column(to_string(student.chemistryGrade))
+			<< column(to_string(student.historyGrade))
+			<< column(to_string(student.overallGrade)) << '\n';
+	}
+	
+	// FYI: "column" and "category" functions set the column size
+}
+
+TeacherDetails findTeacher(int& accountID) {
+	vector<TeacherDetails> listOfTeachers = loadTeachers();
+	TeacherDetails inValid;
+
+	// loops through each teacher in database
+	for (TeacherDetails teacher : listOfTeachers) {
+		// finds account ID which matches teacher ID
+		if (accountID == teacher.ID) {
+			return teacher;
+		}
+	}
+
+	// should never happen
+	return inValid;
 }
 
 void printTeacherMenu(AccountDetails& userAccountDetails);
@@ -881,6 +950,208 @@ void printTeacherMenu(AccountDetails& userAccountDetails) {
 	getTeacherMenuInput(userAccountDetails);
 }
 
+//____________________________________________________________________________________________________________________________
+// ADMIN
+//____________________________________________________________________________________________________________________________
+
+StudentDetails findStudentWithName(StudentDetails& studentDetailsToFind) {
+	vector<StudentDetails> listOfStudents = loadStudents();
+	StudentDetails inValid;
+
+	// loops through each student in database
+	for (StudentDetails student : listOfStudents) {
+		if (studentDetailsToFind.firstName == student.firstName && studentDetailsToFind.lastName == student.lastName) {
+			return student;
+		}
+	}
+
+	return inValid;
+}
+
+StudentDetails getInputToFindStudent() {
+	StudentDetails studentDetailsToFind;
+	vector<StudentDetails> listOfStudents = loadStudents();
+	StudentDetails student;
+
+	clear();
+	line();
+	cout << "FIND STUDENT";
+	line();
+
+	cout << '\n' << "Enter the details of the student you want to find" << '\n';
+	cout << '\n' << "Last name: ";
+	cin >> studentDetailsToFind.lastName;
+	cout << "First name: ";
+	cin >> studentDetailsToFind.firstName;
+
+	student = findStudentWithName(studentDetailsToFind);
+
+	if (!student.isValid()) {
+		clear();
+		cout << '\n' << "No student found!";
+		return student;
+	}
+
+	return student;
+}
+
+void deleteStudent(StudentDetails& studentDetailsToDelete) {
+	vector<StudentDetails> listOfStudents = loadStudents();
+
+	vector<StudentDetails> newListOfStudents = loadNewStudents(listOfStudents, studentDetailsToDelete);
+
+	writeNewListOfStudentsToFile(newListOfStudents);
+
+	clear();
+	cout << '\n' << "Student successfully deleted!" << '\n';
+}
+
+void editStudentDetails() {
+
+}
+
+void printEditStudentMenu(StudentDetails& studentDetails) {
+	vector<StudentDetails> listOfStudents = loadStudents();
+	int userChoice;
+	int confirm;
+	
+	string firstName = studentDetails.firstName;
+	firstName[0] = toupper(firstName[0]);
+	string lastName = studentDetails.lastName;
+	lastName[0] = toupper(lastName[0]);
+	string studentName = firstName + " " + lastName;
+
+	cout << '\n' << "What do you want to do?" << '\n';
+
+	cout << '\n' << "[EDIT = 1] [DELETE = 2] [BACK = 0]" << '\n';
+	cin >> userChoice;
+
+	switch (userChoice) {
+	case 0:
+		clear();
+		return;
+	case 1:
+		editStudentDetails();
+		break;
+	case 2:
+		cout << '\n' << "Are you sure you want to delete " << studentName << "?" << '\n';
+		cout << '\n' << "[YES = 1] [NO = 2]" << '\n';
+		cin >> confirm;
+		if (confirm == 2) {
+			clear();
+			return;
+		}
+		deleteStudent(studentDetails);
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printEditStudentMenu(studentDetails);
+	}
+}
+
+void printAllStudents(vector<StudentDetails>& listOfStudents) {
+	vector<TeacherDetails> listOfTeachers = loadTeachers();
+	string teacherName;
+
+	cout << '\n';
+	// prints the category of each collumn
+	for (size_t i = 0; i < g_columnNames.size(); i++) {
+		cout << category(g_columnNames[i]);
+	}
+	cout << '\n' << printTableLine() << '\n';
+
+	for (StudentDetails student : listOfStudents) {
+		// turns teacher id into name
+		for (TeacherDetails teacher : listOfTeachers) {
+			if (teacher.ID == student.teacherID) {
+				teacherName = teacher.title + teacher.lastName;
+			}
+		}
+		//prints content for student
+		cout << column(student.lastName)
+			<< column(student.firstName)
+			<< column(to_string(student.yearNum))
+			<< column(student.fatherName)
+			<< column(student.motherName)
+			<< column(teacherName)
+			<< column(to_string(student.mathsGrade))
+			<< column(to_string(student.englishGrade))
+			<< column(to_string(student.scienceGrade))
+			<< column(to_string(student.chemistryGrade))
+			<< column(to_string(student.historyGrade))
+			<< column(to_string(student.overallGrade)) << '\n';
+	}
+
+	// FYI: "column" and "category" functions set the column size
+}
+
+void printAdminMenu(AccountDetails& userAccountDetails);
+
+void getAdminMenuInput(AccountDetails& userAccountDetails) {
+	srand((unsigned int)time(0));
+	int userChoice;
+	bool isAvaliableID = false;
+	int randomID = rand() & 1000;
+	vector<AccountDetails> listOfAccounts = loadAccounts();
+	StudentDetails studentDetails;
+
+	while (!isAvaliableID) {
+		for (AccountDetails account : listOfAccounts) {
+			if (account.ID != randomID) {
+				break;
+			}
+			randomID = rand() & 1000;
+		}
+		isAvaliableID = true;
+	}
+
+	cin >> userChoice;
+
+	switch (userChoice) {
+	case 0:
+		clear();
+		cout << '\n' << "Logged out!" << '\n';
+		return;
+	case 1:
+		changeLoginDetails(userAccountDetails);
+		return;
+	case 2:
+		studentDetails = getInputToFindStudent();
+		if (!studentDetails.isValid()) {
+			break;
+		}
+		printStudentDetails(studentDetails);
+		printEditStudentMenu(studentDetails);
+		break;
+	case 3:
+		addNewStudentThenReturn(randomID);
+		break;
+	case 4:
+		addNewAccountThenReturn(randomID);
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		printAdminMenu(userAccountDetails);
+	}
+	printAdminMenu(userAccountDetails);
+}
+
+void printAdminMenu(AccountDetails& userAccountDetails) {
+	vector<StudentDetails> listOfStudents = loadStudents();
+
+	line();
+	cout << "SCHOOL STUDENTS INFORMATION";
+	line();
+
+	printAllStudents(listOfStudents);
+	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [FIND STUDENT = 2] [ADD STUDENT = 3] [ADD ACCOUNT = 4] [LOG OUT = 0]" << '\n';
+
+	getAdminMenuInput(userAccountDetails);
+}
+
+//____________________________________________________________________________________________________________________________
+//____________________________________________________________________________________________________________________________
+
 void switchToAccount(AccountDetails& userAccount) {
 	switch (userAccount.accountType) {
 	case 1:
@@ -890,7 +1161,7 @@ void switchToAccount(AccountDetails& userAccount) {
 		printTeacherMenu(userAccount);
 		break;
 	case 3:
-		//printAdminMenu();
+		printAdminMenu(userAccount);
 		break;
 	default:
 		cout << "No account type";
@@ -931,7 +1202,7 @@ AccountDetails getLoginDetailsFromUser() {
 AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	int loginAttempts = 3;
 	AccountDetails authenticatedUserAccountDetails;
-	vector<AccountDetails> listOfAccounts = loadAccounts();
+	
 
 	clear();
 	line();
@@ -940,6 +1211,7 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	cout << '\n' << "Enter your details" << '\n';
 
 	while (loginAttempts > 0) {
+		vector<AccountDetails> listOfAccounts = loadAccounts();
 		AccountDetails userInputtedAccountDetails = getLoginDetailsFromUser();
 		authenticatedUserAccountDetails = authenticateUser(listOfAccounts, userInputtedAccountDetails);
 		if (authenticatedUserAccountDetails.isValid()) {
@@ -965,7 +1237,7 @@ void printMainMenuOptions() {
 	line();
 
 	cout << '\n' << "Please input the number to the following option" << '\n';
-	cout << '\n' << "[LOGIN = 1] [THEME = 3] (admin =2) [EXIT = 0]" << '\n';
+	cout << '\n' << "[LOGIN = 1] [THEME = 2] [EXIT = 0]" << '\n';
 	getMainMenuInput();
 }
 
@@ -1009,36 +1281,6 @@ void printThemeMenu() {
 	getThemeMenuInput();
 }
 
-void admin() {
-	srand((unsigned int)time(0));
-	int userChoice;
-	bool isAvaliableID = false;
-	int randomID = rand() & 1000;
-	vector<AccountDetails> listOfAccounts = loadAccounts();
-
-	while (!isAvaliableID) {
-		for (AccountDetails account : listOfAccounts) {
-			if (account.ID != randomID) {
-				break;
-			}
-			randomID = rand() & 1000;
-		}
-		isAvaliableID = true;
-	}
-
-	cout << "(add student =2) (create account =3)";
-	cin >> userChoice;
-
-	switch (userChoice) {
-	case 2:
-		addNewStudentThenReturn(randomID);
-		break;
-	case 3:
-		addNewAccountThenReturn(randomID);
-		break;
-	}
-}
-
 void getMainMenuInput() {
 	int userChoice;
 	AccountDetails userAccountDetails;
@@ -1058,9 +1300,6 @@ void getMainMenuInput() {
 		switchToAccount(userAccountDetails);
 		break;
 	case 2:
-		admin();
-		break;
-	case 3:
 		printThemeMenu();
 		break;
 	default:
