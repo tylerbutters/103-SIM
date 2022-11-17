@@ -909,6 +909,68 @@ void deleteStudent(StudentDetails& studentDetailsToDelete) {
 	cout << '\n' << "Student successfully deleted!" << '\n';
 }
 
+void editStudentDetail(StudentDetails currentStudentDetails) {
+	StudentDetails newStudentDetails = currentStudentDetails;
+	int category;
+	string newDetail;
+	vector<StudentDetails> listOfStudents = loadStudents();
+
+	cin >> category;
+
+	cout << '\n' << "Enter new detail: ";
+	cin >> newDetail;
+
+	switch (category) {
+	case 0:
+		clear();
+		return;
+	case 1:
+		newStudentDetails.lastName = newDetail;
+		break;
+	case 2:
+		newStudentDetails.firstName = newDetail;
+		break;
+	case 3:
+		newStudentDetails.yearNum = stoi(newDetail);
+		break;
+	case 4:
+		newStudentDetails.fatherName = newDetail;
+		break;
+	case 5:
+		newStudentDetails.motherName = newDetail;
+		break;
+	case 6:
+		newStudentDetails.teacherID = stoi(newDetail);
+		break;
+	case 7:
+		newStudentDetails.mathsGrade = stoi(newDetail);
+		break;
+	case 8:
+		newStudentDetails.englishGrade = stoi(newDetail);
+		break;
+	case 9:
+		newStudentDetails.scienceGrade = stoi(newDetail);
+		break;
+	case 10:
+		newStudentDetails.chemistryGrade = stoi(newDetail);
+		break;
+	case 11:
+		newStudentDetails.historyGrade = stoi(newDetail);
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		editStudentDetail(newStudentDetails);
+	}
+
+	vector<StudentDetails> newListOfStudents = loadNewStudentsAfterEdited(listOfStudents, newStudentDetails, currentStudentDetails);
+
+	writeNewListOfStudentsToFile(newListOfStudents);
+
+	clear();
+	cout << '\n' << "Student detail changed!" << '\n';
+
+}
+
 void printEditMenuForAdmin(StudentDetails& studentDetails) {
 	cout << '\n' << "What do you want to edit?" << '\n' << '\n';
 
@@ -917,7 +979,7 @@ void printEditMenuForAdmin(StudentDetails& studentDetails) {
 	}
 	cout << "[BACK = 0]" << '\n';
 
-	printEditOrDeleteMenu(studentDetails);
+	editStudentDetail(studentDetails);
 }
 
 void printAllStudents(vector<StudentDetails>& listOfStudents) {
