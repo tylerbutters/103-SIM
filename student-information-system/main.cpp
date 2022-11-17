@@ -9,22 +9,19 @@
 #include <ctime>
 #include <cwchar>
 
-namespace stdprefixes {
-	using std::cout;
-	using std::cin;
-	using std::string;
-	using std::vector;
-	using std::endl;
-	using std::ifstream;
-	using std::fstream;
-	using std::ostream;
-	using std::ios;
-	using std::stringstream;
-	using std::stoi;
-	using std::to_string;
-}
+using std::cout;
+using std::cin;
+using std::string;
+using std::vector;
+using std::endl;
+using std::ifstream;
+using std::fstream;
+using std::ostream;
+using std::ios;
+using std::stringstream;
+using std::stoi;
+using std::to_string;
 
-using namespace stdprefixes;
 
 struct AccountDetails {
 	int ID = 0;
@@ -71,8 +68,8 @@ struct TeacherDetails {
 string g_accountsFileName = ("account-database.csv");
 string g_studentsFileName = ("student-database.csv");
 string g_teachersFileName = ("teacher-database.csv");
-int g_columnWidth = 13;
-vector<string> g_columnNames = { "surname", "name", "year", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
+const int g_columnWidth = 13;
+const vector<string> g_columnNames = { "surname", "name", "form", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
 
 void printTeacherMenu(AccountDetails& userAccountDetails);
 void printAdminMenu(AccountDetails& userAccountDetails);
@@ -88,13 +85,13 @@ void switchToAccount(AccountDetails& userAccount);
 // FORMATTING
 //____________________________________________________________________________________________________________________________
 
-void setStyleClassic() {
-	system("color 1f");
+void setStyleDefault() {
+	system("color 0f");
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
-	cfi.dwFontSize.X = 16;
-	cfi.dwFontSize.Y = 24;
-	wcscpy_s(cfi.FaceName, L"Terminal");
+	cfi.dwFontSize.Y = 21;
+	cfi.FontWeight = FW_NORMAL;
+	wcscpy_s(cfi.FaceName, L"Cascadia");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 
@@ -108,13 +105,13 @@ void setStyleModern() {
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 
-void setStyleDefault() {
-	system("color 0f");
+void setStyleClassic() {
+	system("color 1f");
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
-	cfi.dwFontSize.Y = 20;
-	cfi.FontWeight = FW_NORMAL;
-	wcscpy_s(cfi.FaceName, L"Cascadia");
+	cfi.dwFontSize.X = 15;
+	cfi.dwFontSize.Y = 24;
+	wcscpy_s(cfi.FaceName, L"Terminal");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 
@@ -566,215 +563,6 @@ void writeNewStudentToDabase(StudentDetails& newStudentDetails) {
 }
 
 //____________________________________________________________________________________________________________________________
-// ADD NEW 
-//____________________________________________________________________________________________________________________________
-
-int chooseTeacher(vector<TeacherDetails>& listOfTeachers) {
-	int counter = 1;
-	int teacherChoice;
-	int teacherID;
-
-	for (TeacherDetails teacher : listOfTeachers) {
-		cout << "[";
-		// makes uppercase
-		for (size_t i = 0; i < teacher.title.length(); i++) {
-			teacher.title[i] = toupper(teacher.title[i]);
-			cout << teacher.title[i];
-		}
-		for (size_t i = 0; i < teacher.lastName.length(); i++) {
-			teacher.lastName[i] = toupper(teacher.lastName[i]);
-			cout << teacher.lastName[i];
-		}
-		cout << " = " << counter << " ] ";
-		counter++;
-	}
-
-	cin >> teacherChoice;
-
-	counter = 1;
-	for (TeacherDetails teacher : listOfTeachers) {
-		if (counter == teacherChoice) {
-			teacherID = teacher.ID;
-			return teacherID;
-		}
-		counter++;
-	}
-
-	return NULL;
-}
-
-StudentDetails getNewStudentDetails(int randomID) {
-	StudentDetails newStudentDetails;
-	vector<TeacherDetails> listOfTeachers;
-
-	clear();
-	line();
-	cout << "ADD STUDENT";
-	line();
-
-	cout << '\n' << "Enter new student information" << '\n';
-	cout << '\n' << "First name: ";
-	cin >> newStudentDetails.firstName;
-	cout << "Lastname: ";
-	cin >> newStudentDetails.lastName;
-	cout << "Year: ";
-	cin >> newStudentDetails.yearNum;
-	cout << "Father: ";
-	cin >> newStudentDetails.fatherName;
-	cout << "Mother: ";
-	cin >> newStudentDetails.motherName;
-	cout << "Teacher: " << '\n' << '\n';
-
-	listOfTeachers = loadTeachers();
-	newStudentDetails.teacherID = chooseTeacher(listOfTeachers);
-	newStudentDetails.ID = randomID;
-
-	return newStudentDetails;
-}
-
-TeacherDetails getNewTeacherDetails(int randomID) {
-	TeacherDetails newTeacherDetails;
-	int chooseTitle;
-
-	clear();
-	line();
-	cout << "ADD TEACHER";
-	line();
-
-	cout << '\n' << "Choose the teacher's title" << '\n';
-	cout << '\n' << "[MR = 1] [MRS = 2] [MS = 3] [BACK = 0]" << '\n';
-	cin >> chooseTitle;
-
-	switch (chooseTitle) {
-	case 0:
-		return newTeacherDetails;
-	case 1:
-		newTeacherDetails.title = "mr. ";
-		break;
-	case 2:
-		newTeacherDetails.title = "mrs. ";
-		break;
-	case 3:
-		newTeacherDetails.title = "ms. ";
-		break;
-	default:
-		cout << '\n' << "Please choose one of the options" << '\n';
-		getNewTeacherDetails(randomID);
-	}
-
-	cout << '\n' << "Enter the teacher's name" << '\n';
-	cout << '\n' << "First name: ";
-	cin >> newTeacherDetails.firstName;
-	cout << "Last name: ";
-	cin >> newTeacherDetails.lastName;
-
-	newTeacherDetails.ID = randomID;
-
-	return newTeacherDetails;
-}
-
-AccountDetails getNewAccountDetails(int accountType) {
-	AccountDetails newAccountDetails;
-
-	clear();
-	line();
-	cout << "ADD ADMIN";
-	line();
-
-	cout << '\n' << "Enter new account details" << '\n';
-	cout << '\n' << "Username: ";
-	cin >> newAccountDetails.username;
-	cout << "Password: ";
-	cin >> newAccountDetails.password;
-	newAccountDetails.accountType = accountType + 1;
-
-	return newAccountDetails;
-}
-
-void addNewAccount(int randomID) {
-	int userChoice;
-	AccountDetails newAccountDetails;
-	TeacherDetails newTeacherDetails;
-	int confirm = 0;
-
-	clear();
-	line();
-	cout << "ADD ACCOUNT";
-	line();
-
-	cout << '\n' << "What type of account are you creating?" << '\n';
-	cout << '\n' << "[TEACHER = 1] [ADMIN = 2] [BACK = 0]" << '\n';
-	cin >> userChoice;
-
-	switch (userChoice)
-	{
-	case 0:
-		clear();
-		return;
-	case 1:
-		while (confirm != 1) {
-			newTeacherDetails = getNewTeacherDetails(randomID);
-
-			if (!newTeacherDetails.isValid()) {
-				clear();
-				return;
-			}
-
-			cout << '\n' << newTeacherDetails.title << newTeacherDetails.firstName << " " << newTeacherDetails.lastName << '\n';
-			cout << "Conirm?" << '\n';
-			cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
-			cin >> confirm;
-		}
-		// sets up automatic account
-		newAccountDetails.username = newTeacherDetails.firstName;
-		newAccountDetails.password = newTeacherDetails.lastName;
-		newAccountDetails.ID = newTeacherDetails.ID;
-		newAccountDetails.accountType = 2;
-
-		clear();
-		cout << '\n' << "Teacher added!" << '\n';
-		cout << "Note: Teacher's default login details are their first name and last name. This can be changed later" << '\n';
-
-		writeNewTeacherToDabase(newTeacherDetails);
-		break;
-	case 2:
-		newAccountDetails = getNewAccountDetails(userChoice);
-		clear();
-		cout << '\n' << "Admin account added!" << '\n';
-		break;
-	default:
-		cout << '\n' << "Please choose one of the options" << '\n';
-		addNewAccount(randomID);
-	}
-
-	writeNewAccountToDabase(newAccountDetails);
-	clear();
-}
-
-void addNewStudent(int& randomID) {
-	AccountDetails newAccountDetails;
-	StudentDetails newStudentDetails;
-
-	line();
-	cout << "NEW STUDENT";
-	line();
-
-	newStudentDetails = getNewStudentDetails(randomID);
-	// sets up automatic account
-	newAccountDetails.username = newStudentDetails.firstName;
-	newAccountDetails.password = newStudentDetails.lastName;
-	newAccountDetails.ID = newStudentDetails.ID;
-	newAccountDetails.accountType = 1;
-
-	writeNewStudentToDabase(newStudentDetails);
-	writeNewAccountToDabase(newAccountDetails);
-	clear();
-
-	cout << '\n' << "Student added!" << '\n';
-	cout << "Note: Student's default login details are their first name and last name. This can be changed later" << '\n';
-}
-
-//____________________________________________________________________________________________________________________________
 // ACCOUNT CONTROLS
 //____________________________________________________________________________________________________________________________
 
@@ -805,7 +593,7 @@ void changeLoginDetails(AccountDetails& currentLoginDetails) {
 	writeNewListOfAccountsToFile(newListOfAccounts);
 
 	clear();
-	cout << '\n' << "Details successfully changed!" << '\n';
+	cout << '\n' << "Details successfully changed!";
 }
 
 void printStudentDetails(StudentDetails& student) {
@@ -898,6 +686,219 @@ StudentDetails getInputToFindStudent() {
 // ADMIN
 //____________________________________________________________________________________________________________________________
 
+int chooseTeacher(vector<TeacherDetails>& listOfTeachers) {
+	int counter = 1;
+	int teacherChoice;
+	int teacherID;
+
+	for (TeacherDetails teacher : listOfTeachers) {
+		cout << "[";
+		// makes uppercase
+		for (size_t i = 0; i < teacher.title.length(); i++) {
+			teacher.title[i] = toupper(teacher.title[i]);
+			cout << teacher.title[i];
+		}
+		for (size_t i = 0; i < teacher.lastName.length(); i++) {
+			teacher.lastName[i] = toupper(teacher.lastName[i]);
+			cout << teacher.lastName[i];
+		}
+		cout << " = " << counter << " ] ";
+		counter++;
+	}
+
+	cin >> teacherChoice;
+
+	counter = 1;
+	for (TeacherDetails teacher : listOfTeachers) {
+		if (counter == teacherChoice) {
+			teacherID = teacher.ID;
+			return teacherID;
+		}
+		counter++;
+	}
+
+	return NULL;
+}
+
+TeacherDetails getNewTeacherDetails(int randomID) {
+	TeacherDetails newTeacherDetails;
+	int chooseTitle;
+
+	clear();
+	line();
+	cout << "ADD TEACHER";
+	line();
+
+	cout << '\n' << "Choose the teacher's title" << '\n';
+	cout << '\n' << "[MR = 1] [MRS = 2] [MS = 3] [BACK = 0]" << '\n';
+	cin >> chooseTitle;
+
+	switch (chooseTitle) {
+	case 0:
+		return newTeacherDetails;
+	case 1:
+		newTeacherDetails.title = "mr. ";
+		break;
+	case 2:
+		newTeacherDetails.title = "mrs. ";
+		break;
+	case 3:
+		newTeacherDetails.title = "ms. ";
+		break;
+	default:
+		cout << '\n' << "Please choose one of the options" << '\n';
+		getNewTeacherDetails(randomID);
+	}
+
+	cout << '\n' << "Enter the teacher's name" << '\n';
+	cout << '\n' << "First name: ";
+	cin >> newTeacherDetails.firstName;
+	cout << "Last name: ";
+	cin >> newTeacherDetails.lastName;
+
+	newTeacherDetails.ID = randomID;
+
+	return newTeacherDetails;
+}
+
+AccountDetails getNewAdminDetails() {
+	AccountDetails newAccountDetails;
+
+	clear();
+	line();
+	cout << "ADD ADMIN";
+	line();
+
+	cout << '\n' << "Enter new account details" << '\n';
+	cout << '\n' << "Username: ";
+	cin >> newAccountDetails.username;
+	cout << "Password: ";
+	cin >> newAccountDetails.password;
+	newAccountDetails.accountType = 3;
+
+	return newAccountDetails;
+}
+
+StudentDetails getNewStudentDetails(int randomID) {
+	StudentDetails newStudentDetails;
+	vector<TeacherDetails> listOfTeachers;
+
+	clear();
+	line();
+	cout << "ADD STUDENT";
+	line();
+
+	cout << '\n' << "Enter new student information" << '\n';
+	cout << '\n' << "First name: ";
+	cin >> newStudentDetails.firstName;
+	cout << "Lastname: ";
+	cin >> newStudentDetails.lastName;
+	cout << "Year: ";
+	cin >> newStudentDetails.yearNum;
+	cout << "Father: ";
+	cin >> newStudentDetails.fatherName;
+	cout << "Mother: ";
+	cin >> newStudentDetails.motherName;
+	cout << "Teacher: " << '\n' << '\n';
+
+	listOfTeachers = loadTeachers();
+
+	while (newStudentDetails.teacherID == NULL) {
+		newStudentDetails.teacherID = chooseTeacher(listOfTeachers);
+		if (newStudentDetails.teacherID == NULL) {
+			clear();
+			cout << '\n' << "Please choose one of the options";
+			getNewStudentDetails(randomID);
+		}
+	}
+	newStudentDetails.ID = randomID;
+
+	return newStudentDetails;
+}
+
+void addNewStudent(int& randomID) {
+	AccountDetails newAccountDetails;
+	StudentDetails newStudentDetails;
+
+	line();
+	cout << "NEW STUDENT";
+	line();
+
+	newStudentDetails = getNewStudentDetails(randomID);
+	// sets up automatic account
+	newAccountDetails.username = newStudentDetails.firstName;
+	newAccountDetails.password = newStudentDetails.lastName;
+	newAccountDetails.ID = newStudentDetails.ID;
+	newAccountDetails.accountType = 1;
+
+	writeNewStudentToDabase(newStudentDetails);
+	writeNewAccountToDabase(newAccountDetails);
+	clear();
+
+	cout << '\n' << "Student added!" << '\n';
+	cout << "Note: Student's default login details are their first name and last name. This can be changed later" << '\n';
+}
+
+void addNewAdmin() {
+	AccountDetails newAccountDetails;
+	int confirm = 0;
+
+	newAccountDetails = getNewAdminDetails();
+
+	if (!newAccountDetails.isValid()) {
+		clear();
+		return;
+	}
+
+	cout << '\n' << "Confirm new admin?" << '\n';
+	cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
+	cin >> confirm;
+
+	if (confirm == 0) {
+		clear();
+		cout << '\n' << "Cancelled";
+		return;
+	}
+
+	clear();
+	cout << '\n' << "Admin account added!";
+}
+
+void addNewTeacher(int& randomID) {
+	AccountDetails newAccountDetails;
+	TeacherDetails newTeacherDetails;
+	int confirm = 0;
+
+	newTeacherDetails = getNewTeacherDetails(randomID);
+
+	if (!newTeacherDetails.isValid()) {
+		clear();
+		return;
+	}
+
+	cout << '\n' << "Confirm new teacher?" << '\n';
+	cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
+	cin >> confirm;
+
+	if (confirm == 0) {
+		clear();
+		cout << '\n' << "Cancelled";
+		return;
+	}
+
+	// sets up automatic account
+	newAccountDetails.username = newTeacherDetails.firstName;
+	newAccountDetails.password = newTeacherDetails.lastName;
+	newAccountDetails.ID = newTeacherDetails.ID;
+	newAccountDetails.accountType = 2;
+
+	clear();
+	cout << '\n' << "Teacher added!";
+	cout << "Note: Teacher's default login details are their first name and last name. This can be changed later";
+
+	writeNewTeacherToDabase(newTeacherDetails);
+}
+
 void deleteStudent(StudentDetails& studentDetailsToDelete) {
 	vector<StudentDetails> listOfStudents = loadStudents();
 
@@ -958,7 +959,7 @@ void editStudentDetail(StudentDetails currentStudentDetails) {
 		newStudentDetails.historyGrade = stoi(newDetail);
 		break;
 	default:
-		cout << '\n' << "Please choose one of the options" << '\n';
+		cout << '\n' << "Please choose one of the options";
 		editStudentDetail(newStudentDetails);
 	}
 
@@ -968,7 +969,6 @@ void editStudentDetail(StudentDetails currentStudentDetails) {
 
 	clear();
 	cout << '\n' << "Student detail changed!" << '\n';
-
 }
 
 void printEditMenuForAdmin(StudentDetails& studentDetails) {
@@ -1050,17 +1050,19 @@ void printEditOrDeleteMenu(StudentDetails studentDetails) {
 		break;
 	case 2:
 		cout << '\n' << "Are you sure you want to delete " << studentName << "?" << '\n';
-		cout << '\n' << "[YES = 1] [NO = 2]" << '\n';
+		cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
 		cin >> confirm;
-		if (confirm == 2) {
+
+		if (confirm == 0) {
 			clear();
-			return;
+			cout << '\n' << "Cancelled";
+			printEditOrDeleteMenu(studentDetails);
 		}
 		deleteStudent(studentDetails);
 		break;
 	default:
 		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
+		cout << '\n' << "Please choose one of the options";
 		printEditOrDeleteMenu(studentDetails);
 	}
 }
@@ -1104,11 +1106,14 @@ void getAdminMenuInput(AccountDetails& userAccountDetails) {
 		addNewStudent(randomID);
 		break;
 	case 4:
-		addNewAccount(randomID);
+		addNewTeacher(randomID);
+		break;
+	case 5: 
+		addNewAdmin();
 		break;
 	default:
 		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
+		cout << '\n' << "Please choose one of the options";
 		break;
 	}
 	printAdminMenu(userAccountDetails);
@@ -1122,7 +1127,7 @@ void printAdminMenu(AccountDetails& userAccountDetails) {
 	line();
 
 	printAllStudents(listOfStudents);
-	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [FIND STUDENT = 2] [ADD STUDENT = 3] [ADD ACCOUNT = 4] [LOG OUT = 0]" << '\n';
+	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [FIND STUDENT = 2] [ADD STUDENT = 3] [ADD TEACHER = 4] [ADD ADMIN = 5] [LOG OUT = 0]" << '\n';
 
 	getAdminMenuInput(userAccountDetails);
 }
@@ -1159,12 +1164,12 @@ StudentDetails getNewGrades(StudentDetails studentDetails, int chosenCategory) {
 
 	if (newGrade > 20) {
 		clear();
-		cout << '\n' << "The max grade is 20" << '\n';
+		cout << '\n' << "The max grade is 20";
 		printEditGradesMenu(newStudentDetails);
 	}
 	else if (newGrade < 0) {
 		clear();
-		cout << '\n' << "Grade cannot be blow 0" << '\n';
+		cout << '\n' << "Grade cannot be below 0";
 		printEditGradesMenu(newStudentDetails);
 	}
 
@@ -1188,7 +1193,7 @@ StudentDetails getNewGrades(StudentDetails studentDetails, int chosenCategory) {
 		newStudentDetails.historyGrade = newGrade;
 		break;
 	default:
-		cout << '\n' << "Please choose one of the options" << '\n';
+		cout << '\n' << "Please choose one of the options";
 		printEditGradesMenu(newStudentDetails);
 	}
 
@@ -1201,8 +1206,24 @@ void changeGrade(StudentDetails studentDetails) {
 	int chosenCategory;
 	cin >> chosenCategory;
 
+	if (chosenCategory == 0) {
+		clear();
+		return;
+	}
+
 	StudentDetails newStudentDetails = getNewGrades(studentDetails, chosenCategory);
 	if (!newStudentDetails.isValid()) {
+		return;
+	}
+
+	cout << '\n' << "Confirm grade change?" << '\n';
+	cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
+	int confirm;
+	cin >> confirm;
+
+	if (confirm == 0) {
+		clear();
+		cout << '\n' << "Cancelled";
 		return;
 	}
 
@@ -1211,7 +1232,7 @@ void changeGrade(StudentDetails studentDetails) {
 	writeNewListOfStudentsToFile(newListOfStudents);
 
 	clear();
-	cout << '\n' << "Student detail changed!" << '\n';
+	cout << '\n' << "Student grade changed!";
 }
 
 void printEditGradesMenu(StudentDetails& studentDetails) {
@@ -1437,13 +1458,13 @@ void getThemeMenuInput() {
 		clear();
 		return;
 	case 1:
-		setStyleClassic();
-		break;
-	case 2:
 		setStyleDefault();
 		break;
-	case 3:
+	case 2:
 		setStyleModern();
+		break;
+	case 3:
+		setStyleClassic();
 		break;
 	case 4:
 		setStyleHacker();
@@ -1462,7 +1483,7 @@ void printThemeMenu() {
 	line();
 
 	cout << '\n' << "Choose theme" << '\n';
-	cout << '\n' << "[CLASSIC = 1] [DEFAULT = 2] [MODERN = 3] [HACKER = 4] [BACK = 0]" << '\n';
+	cout << '\n' << "[DEFAULT = 1] [MODERN = 2] [CLASSIC (BUGGY) = 3] [HACKER (BUGGY) = 4] [BACK = 0]" << '\n';
 
 	getThemeMenuInput();
 }
@@ -1480,8 +1501,9 @@ void getStartMenuInput() {
 	case 1:
 		userAccountDetails = getLoginDetailsFromUserAndAuthenticate();
 		if (!userAccountDetails.isValid()) {
-			cout << "Shutting down application..." << '\n';
-			return;
+			clear();
+			cout << '\n' << "Too many failed attempts" << '\n';
+			break;
 		}
 		switchToAccount(userAccountDetails);
 		break;
@@ -1490,7 +1512,7 @@ void getStartMenuInput() {
 		break;
 	default:
 		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
+		cout << '\n' << "Please choose one of the options";
 		break;
 	}
 	printStartMenu();
