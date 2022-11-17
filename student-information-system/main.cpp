@@ -69,7 +69,7 @@ string g_accountsFileName = ("account-database.csv");
 string g_studentsFileName = ("student-database.csv");
 string g_teachersFileName = ("teacher-database.csv");
 const int g_columnWidth = 13;
-const vector<string> g_columnNames = { "surname", "name", "form", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
+const vector<string> g_categories = { "surname", "name", "form", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
 
 void printTeacherMenu(AccountDetails& userAccountDetails);
 void printAdminMenu(AccountDetails& userAccountDetails);
@@ -157,12 +157,16 @@ string category(string inputString) {
 	int columnLength = g_columnWidth - 1;
 	string outputString = "[";
 
+	// adds string to new variable
 	for (size_t i = 0; i < inputString.length(); i++) {
 		outputString += inputString[i];
 		columnLength--;
 	}
+
 	outputString = uppercase(outputString);
 	outputString += "]";
+
+	//adds whitespace until the end of the column length
 	while (columnLength != 0) {
 		outputString += " ";
 		columnLength--;
@@ -178,7 +182,7 @@ string column(string inputString) {
 	// makes first letter capital
 	inputString[0] = toupper(inputString[0]);
 
-	// if string is bigger then column length then itll cut it off
+	// if string is bigger then column length then itll cut it off and add ".." to the end
 	if (inputString.length() > columnLength) {
 		int i = 0;
 		while (columnLength - 2 != 0) {
@@ -189,11 +193,12 @@ string column(string inputString) {
 		return outputString += "..|";
 	}
 	else {
+		// adds string to new variable
 		for (size_t i = 0; i < inputString.length(); i++) {
 			outputString += inputString[i];
 			columnLength--;
 		}
-
+		//adds whitespace until the end of the column length
 		while (columnLength != 0) {
 			outputString += " ";
 			columnLength--;
@@ -205,7 +210,7 @@ string column(string inputString) {
 
 string printTableLine() {
 	string outputString;
-	for (size_t i = 0; i < g_columnNames.size(); i++) {
+	for (size_t i = 0; i < g_categories.size(); i++) {
 		for (int i = 0; i < g_columnWidth; i++) {
 			outputString += "_";
 		}
@@ -602,8 +607,8 @@ void printStudentDetails(StudentDetails& student) {
 
 	cout << '\n';
 	// prints the category of each collumn
-	for (size_t i = 0; i < g_columnNames.size(); i++) {
-		cout << category(g_columnNames[i]);
+	for (size_t i = 0; i < g_categories.size(); i++) {
+		cout << category(g_categories[i]);
 	}
 	cout << '\n' << printTableLine() << '\n';
 
@@ -974,8 +979,8 @@ void editStudentDetail(StudentDetails currentStudentDetails) {
 void printEditMenuForAdmin(StudentDetails& studentDetails) {
 	cout << '\n' << "What do you want to edit?" << '\n' << '\n';
 
-	for (size_t i = 0; i < g_columnNames.size() - 1; i++) {
-		cout << "[" << uppercase(g_columnNames[i]) << " = " << i + 1 << "] ";
+	for (size_t i = 0; i < g_categories.size() - 1; i++) {
+		cout << "[" << uppercase(g_categories[i]) << " = " << i + 1 << "] ";
 	}
 	cout << "[BACK = 0]" << '\n';
 
@@ -988,8 +993,8 @@ void printAllStudents(vector<StudentDetails>& listOfStudents) {
 
 	cout << '\n';
 	// prints the category of each collumn
-	for (size_t i = 0; i < g_columnNames.size(); i++) {
-		cout << category(g_columnNames[i]);
+	for (size_t i = 0; i < g_categories.size(); i++) {
+		cout << category(g_categories[i]);
 	}
 	cout << '\n' << printTableLine() << '\n';
 
@@ -1247,8 +1252,8 @@ void printEditGradesMenu(StudentDetails& studentDetails) {
 	cout << '\n' << "What do you want to edit?" << '\n' << '\n';
 
 	// prints out only the reports as options
-	for (size_t i = 6; i < g_columnNames.size() - 1; i++) {
-		cout << "[" << uppercase(g_columnNames[i]) << " = " << i - 5 << "] ";;
+	for (size_t i = 6; i < g_categories.size() - 1; i++) {
+		cout << "[" << uppercase(g_categories[i]) << " = " << i - 5 << "] ";;
 	}
 	cout << "[BACK = 0]" << '\n';
 
@@ -1260,8 +1265,8 @@ void printClassDetails(vector<StudentDetails>& listOfStudentsInClass) {
 
 	cout << '\n';
 	// prints the category of each collumn
-	for (size_t i = 0; i < g_columnNames.size(); i++) {
-		cout << category(g_columnNames[i]);
+	for (size_t i = 0; i < g_categories.size(); i++) {
+		cout << category(g_categories[i]);
 	}
 	cout << '\n' << printTableLine() << '\n';
 
