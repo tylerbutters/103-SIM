@@ -69,7 +69,7 @@ string g_accountsFileName = ("account-database.csv");
 string g_studentsFileName = ("student-database.csv");
 string g_teachersFileName = ("teacher-database.csv");
 const int g_columnWidth = 13;
-const vector<string> g_categories = { "surname", "name", "form", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
+const vector<string> g_categories = { "surname", "name", "year", "father", "mother", "teacher", "maths","english","science","chem","history","overall" };
 
 void printTeacherMenu(AccountDetails& userAccountDetails);
 void printAdminMenu(AccountDetails& userAccountDetails);
@@ -689,7 +689,7 @@ StudentDetails findStudentWithName(StudentDetails& studentDetailsToFind) {
 	return inValid;
 }
 
-StudentDetails getInputToFindStudent() {
+StudentDetails getSelectStudentInput() {
 	StudentDetails studentDetailsToFind;
 	vector<StudentDetails> listOfStudents = loadStudents();
 
@@ -827,6 +827,7 @@ AccountDetails findAccountWithID(int& accountID) {
 StudentDetails getNewStudentDetails(int randomID) {
 	StudentDetails newStudentDetails;
 	vector<TeacherDetails> listOfTeachers;
+	bool isValid = false;
 
 	clear();
 	line();
@@ -838,8 +839,15 @@ StudentDetails getNewStudentDetails(int randomID) {
 	cin >> newStudentDetails.firstName;
 	cout << "Lastname: ";
 	cin >> newStudentDetails.lastName;
-	cout << "Year: ";
-	cin >> newStudentDetails.yearNum;
+	while (!isValid) {
+		cout << "Year (9 - 13): ";
+		cin >> newStudentDetails.yearNum;
+		if (newStudentDetails.yearNum > 13 || newStudentDetails.yearNum < 9) {
+			cout << '\n' << "Please enter withing the range";
+			continue;
+		}
+		isValid = true;
+	}
 	cout << "Father: ";
 	cin >> newStudentDetails.fatherName;
 	cout << "Mother: ";
@@ -1082,9 +1090,12 @@ void printAllStudents(vector<StudentDetails>& listOfStudents) {
 	for (StudentDetails student : listOfStudents) {
 		// turns teacher id into name
 		for (TeacherDetails teacher : listOfTeachers) {
-			lastname = teacher.lastName;
-			lastname[0] = toupper(teacher.lastName[0]);
-			teacherName = teacher.title + lastname;
+			if (teacher.ID == student.teacherID) {
+				lastname = teacher.lastName;
+				lastname[0] = toupper(teacher.lastName[0]);
+				teacherName = teacher.title + lastname;
+				break;
+			}
 		}
 		//prints content for student
 		cout << column(student.lastName)
@@ -1171,7 +1182,7 @@ void getAdminMenuInput(AccountDetails& userAccountDetails) {
 		changeLoginDetails(userAccountDetails);
 		return;
 	case 2:
-		studentDetails = getInputToFindStudent();
+		studentDetails = getSelectStudentInput();
 		if (!studentDetails.isValid()) {
 			break;
 		}
@@ -1204,7 +1215,7 @@ void printAdminMenu(AccountDetails& userAccountDetails) {
 
 	cout << '\n' << "Here's the details of all students in the schools" << '\n';
 	printAllStudents(listOfStudents);
-	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [FIND STUDENT = 2] [ADD STUDENT = 3] [ADD TEACHER = 4] [ADD ADMIN = 5] [LOG OUT = 0]" << '\n';
+	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [SELECT STUDENT = 2] [ADD STUDENT = 3] [ADD TEACHER = 4] [ADD ADMIN = 5] [LOG OUT = 0]" << '\n';
 
 	getAdminMenuInput(userAccountDetails);
 }
@@ -1229,12 +1240,12 @@ TeacherDetails findTeacherWithID(int& accountID) {
 	return inValid;
 }
 
-StudentDetails getNewGrades(StudentDetails studentDetails, int chosenCategory) {
+StudentDetails getNewGradeInput(StudentDetails studentDetails, int chosenCategory) {
 	StudentDetails newStudentDetails = studentDetails;
 	StudentDetails inValid;
 	vector<StudentDetails> listOfStudents = loadStudents();
 
-	cout << '\n' << "Enter new grade: ";
+	cout << '\n' << "Enter new grade (0 - 20): ";
 
 	int newGrade;
 	cin >> newGrade;
@@ -1288,7 +1299,7 @@ void changeGrade(StudentDetails studentDetails) {
 		return;
 	}
 
-	StudentDetails newStudentDetails = getNewGrades(studentDetails, chosenCategory);
+	StudentDetails newStudentDetails = getNewGradeInput(studentDetails, chosenCategory);
 	if (!newStudentDetails.isValid()) {
 		return;
 	}
@@ -1374,7 +1385,7 @@ void getTeacherMenuInput(AccountDetails& userAccountDetails, vector<StudentDetai
 		changeLoginDetails(userAccountDetails);
 		return;
 	case 2:
-		studentDetails = getInputToFindStudent();
+		studentDetails = getSelectStudentInput();
 		if (!studentDetails.isValid()) {
 			break;
 		}
