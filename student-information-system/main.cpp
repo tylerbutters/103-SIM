@@ -1,5 +1,5 @@
 #include <iostream>
-//#include <stdlib.h>
+#include <stdlib.h>
 #include <sstream>
 #include <vector>
 #include <string>
@@ -102,7 +102,7 @@ void setStyleModern() {
 	system("color f0");
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
-	cfi.dwFontSize.Y = 20;
+	cfi.dwFontSize.Y = 24;
 	cfi.FontWeight = FW_BOLD;
 	wcscpy_s(cfi.FaceName, L"Consolas");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
@@ -112,9 +112,19 @@ void setStyleDefault() {
 	system("color 0f");
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
-	cfi.dwFontSize.Y = 18;
+	cfi.dwFontSize.Y = 20;
 	cfi.FontWeight = FW_NORMAL;
 	wcscpy_s(cfi.FaceName, L"Cascadia");
+	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
+}
+
+void setStyleHacker() {
+	system("color 02");
+	CONSOLE_FONT_INFOEX cfi;
+	cfi.cbSize = sizeof(cfi);
+	cfi.dwFontSize.X = 16;
+	cfi.dwFontSize.Y = 24;
+	wcscpy_s(cfi.FaceName, L"Terminal");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 }
 
@@ -174,7 +184,7 @@ string column(string inputString) {
 	// if string is bigger then column length then itll cut it off
 	if (inputString.length() > columnLength) {
 		int i = 0;
-		while (columnLength-2 != 0) {
+		while (columnLength - 2 != 0) {
 			outputString += inputString[i];
 			columnLength--;
 			i++;
@@ -192,7 +202,7 @@ string column(string inputString) {
 			columnLength--;
 		}
 	}
-	
+
 	return outputString += "|";
 }
 
@@ -205,26 +215,6 @@ string printTableLine() {
 		outputString += "_";
 	}
 	return outputString;
-}
-
-int checkInput() {
-	string userChoiceString;
-
-	cin >> userChoiceString;
-
-	if (userChoiceString.length() > 1) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		return NULL;
-	}
-	else if (!isdigit(userChoiceString[0])) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		return NULL;
-	}
-	int userChoice = stoi(userChoiceString);
-
-	return userChoice;
 }
 
 //____________________________________________________________________________________________________________________________
@@ -475,7 +465,7 @@ void writeNewListOfAccountsToFile(vector<AccountDetails> newListOfAccounts) {
 
 	// writes account details to file
 	for (AccountDetails account : newListOfAccounts) {
-		accountsFile << account.ID << "," 
+		accountsFile << account.ID << ","
 			<< account.username << ","
 			<< account.password << ","
 			<< account.accountType << '\n';
@@ -576,7 +566,7 @@ void writeNewStudentToDabase(StudentDetails& newStudentDetails) {
 }
 
 //____________________________________________________________________________________________________________________________
-// ADD
+// ADD NEW 
 //____________________________________________________________________________________________________________________________
 
 int chooseTeacher(vector<TeacherDetails>& listOfTeachers) {
@@ -654,7 +644,7 @@ TeacherDetails getNewTeacherDetails(int randomID) {
 	cout << '\n' << "Choose the teacher's title" << '\n';
 	cout << '\n' << "[MR = 1] [MRS = 2] [MS = 3] [BACK = 0]" << '\n';
 	cin >> chooseTitle;
-	
+
 	switch (chooseTitle) {
 	case 0:
 		return newTeacherDetails;
@@ -697,7 +687,7 @@ AccountDetails getNewAccountDetails(int accountType) {
 	cout << "Password: ";
 	cin >> newAccountDetails.password;
 	newAccountDetails.accountType = accountType + 1;
-	
+
 	return newAccountDetails;
 }
 
@@ -969,7 +959,7 @@ void printAllStudents(vector<StudentDetails>& listOfStudents) {
 void printEditOrDeleteMenu(StudentDetails studentDetails) {
 	vector<StudentDetails> listOfStudents = loadStudents();
 	int confirm;
-	
+
 	string firstName = studentDetails.firstName;
 	string lastName = studentDetails.lastName;
 	firstName[0] = toupper(firstName[0]);
@@ -986,20 +976,8 @@ void printEditOrDeleteMenu(StudentDetails studentDetails) {
 	cout << '\n' << "What do you want to do?" << '\n';
 	cout << '\n' << "[EDIT = 1] [DELETE = 2] [BACK = 0]" << '\n';
 
-	string userChoiceString;
-	cin >> userChoiceString;
-
-	if (userChoiceString.length() > 1) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printEditOrDeleteMenu(studentDetails);
-	}
-	else if (!isdigit(userChoiceString[0])) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printEditOrDeleteMenu(studentDetails);
-	}
-	int userChoice = stoi(userChoiceString);
+	int userChoice;
+	cin >> userChoice;
 
 	switch (userChoice) {
 	case 0:
@@ -1019,6 +997,7 @@ void printEditOrDeleteMenu(StudentDetails studentDetails) {
 		deleteStudent(studentDetails);
 		break;
 	default:
+		clear();
 		cout << '\n' << "Please choose one of the options" << '\n';
 		printEditOrDeleteMenu(studentDetails);
 	}
@@ -1041,20 +1020,8 @@ void getAdminMenuInput(AccountDetails& userAccountDetails) {
 		isAvaliableID = true;
 	}
 
-	string userChoiceString;
-	cin >> userChoiceString;
-
-	if (userChoiceString.length() > 1) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printAdminMenu(userAccountDetails);
-	}
-	else if (!isdigit(userChoiceString[0])) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printAdminMenu(userAccountDetails);
-	}
-	int userChoice = stoi(userChoiceString);
+	int userChoice;
+	cin >> userChoice;
 
 	switch (userChoice) {
 	case 0:
@@ -1078,8 +1045,9 @@ void getAdminMenuInput(AccountDetails& userAccountDetails) {
 		addNewAccount(randomID);
 		break;
 	default:
+		clear();
 		cout << '\n' << "Please choose one of the options" << '\n';
-		printAdminMenu(userAccountDetails);
+		break;
 	}
 	printAdminMenu(userAccountDetails);
 }
@@ -1121,13 +1089,11 @@ StudentDetails getNewGrades(StudentDetails studentDetails, int chosenCategory) {
 	StudentDetails newStudentDetails = studentDetails;
 	StudentDetails inValid;
 	vector<StudentDetails> listOfStudents = loadStudents();
-	
-	cout << '\n' << "Enter new grade: ";
-	
-	string newGradeString;
-	cin >> newGradeString;
 
-	int newGrade = stoi(newGradeString);
+	cout << '\n' << "Enter new grade: ";
+
+	int newGrade;
+	cin >> newGrade;
 
 	if (newGrade > 20) {
 		clear();
@@ -1167,23 +1133,11 @@ StudentDetails getNewGrades(StudentDetails studentDetails, int chosenCategory) {
 	return newStudentDetails;
 }
 
-void changeGrade(StudentDetails studentDetails){
+void changeGrade(StudentDetails studentDetails) {
 	vector<StudentDetails> listOfStudents = loadStudents();
 
-	string userChoiceString;
-	cin >> userChoiceString;
-
-	if (userChoiceString.length() > 1) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printEditGradesMenu(studentDetails);
-	}
-	else if (!isdigit(userChoiceString[0])) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printEditGradesMenu(studentDetails);
-	}
-	int chosenCategory = stoi(userChoiceString);
+	int chosenCategory;
+	cin >> chosenCategory;
 
 	StudentDetails newStudentDetails = getNewGrades(studentDetails, chosenCategory);
 	if (!newStudentDetails.isValid()) {
@@ -1191,7 +1145,7 @@ void changeGrade(StudentDetails studentDetails){
 	}
 
 	vector<StudentDetails> newListOfStudents = loadNewStudentsAfterEdited(listOfStudents, newStudentDetails, studentDetails);
-	
+
 	writeNewListOfStudentsToFile(newListOfStudents);
 
 	clear();
@@ -1243,27 +1197,15 @@ void printClassDetails(vector<StudentDetails>& listOfStudentsInClass) {
 			<< column(to_string(student.historyGrade))
 			<< column(to_string(student.overallGrade)) << '\n';
 	}
-	
+
 	// FYI: "column" and "category" functions set the column size
 }
 
 void getTeacherMenuInput(AccountDetails& userAccountDetails, vector<StudentDetails>& listOfStudentsInClass) {
 	StudentDetails studentDetails;
 
-	string userChoiceString;
-	cin >> userChoiceString;
-
-	if (userChoiceString.length() > 1) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printTeacherMenu(userAccountDetails);
-	}
-	else if (!isdigit(userChoiceString[0])) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printTeacherMenu(userAccountDetails);
-	}
-	int userChoice = stoi(userChoiceString);
+	int userChoice;
+	cin >> userChoice;
 
 	switch (userChoice) {
 	case 0:
@@ -1329,20 +1271,8 @@ StudentDetails findStudentWithID(int& accountID) {
 }
 
 void getStudentMenuInput(AccountDetails& userAccountDetails) {
-	string userChoiceString;
-	cin >> userChoiceString;
-
-	if (userChoiceString.length() > 1) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printStudentMenu(userAccountDetails);
-	}
-	else if (!isdigit(userChoiceString[0])) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printStudentMenu(userAccountDetails);
-	}
-	int userChoice = stoi(userChoiceString);
+	int userChoice;
+	cin >> userChoice;
 
 	switch (userChoice) {
 	case 0:
@@ -1353,9 +1283,11 @@ void getStudentMenuInput(AccountDetails& userAccountDetails) {
 		changeLoginDetails(userAccountDetails);
 		return;
 	default:
+		clear();
 		cout << '\n' << "Please choose one of the options" << '\n';
-		printStudentMenu(userAccountDetails);
+		break;
 	}
+	printStudentMenu(userAccountDetails);
 }
 
 void printStudentMenu(AccountDetails& userAccountDetails) {
@@ -1408,7 +1340,7 @@ AccountDetails getLoginDetailsFromUser() {
 AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 	int loginAttempts = 3;
 	AccountDetails authenticatedUserAccountDetails;
-	
+
 	clear();
 	line();
 	cout << "LOGIN";
@@ -1435,20 +1367,8 @@ AccountDetails getLoginDetailsFromUserAndAuthenticate() {
 }
 
 void getThemeMenuInput() {
-	string userChoiceString;
-	cin >> userChoiceString;
-
-	if (userChoiceString.length() > 1) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printThemeMenu();
-	}
-	else if (!isdigit(userChoiceString[0])) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printThemeMenu();
-	}
-	int userChoice = stoi(userChoiceString);
+	int userChoice;
+	cin >> userChoice;
 
 	switch (userChoice) {
 	case 0:
@@ -1463,11 +1383,13 @@ void getThemeMenuInput() {
 	case 3:
 		setStyleModern();
 		break;
+	case 4:
+		setStyleHacker();
 	default:
+		clear();
 		cout << '\n' << "Please choose one of the options" << '\n';
-		printThemeMenu();
+		break;
 	}
-
 	printThemeMenu();
 }
 
@@ -1478,7 +1400,7 @@ void printThemeMenu() {
 	line();
 
 	cout << '\n' << "Choose theme" << '\n';
-	cout << '\n' << "[CLASSIC = 1] [DEFAULT = 2] [MODERN = 3] [BACK = 0]" << '\n';
+	cout << '\n' << "[CLASSIC = 1] [DEFAULT = 2] [MODERN = 3] [HACKER = 4] [BACK = 0]" << '\n';
 
 	getThemeMenuInput();
 }
@@ -1486,20 +1408,8 @@ void printThemeMenu() {
 void getStartMenuInput() {
 	AccountDetails userAccountDetails;
 
-	string userChoiceString;
-	cin >> userChoiceString;
-
-	if (userChoiceString.length() > 1) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printStartMenu();
-	}
-	else if (!isdigit(userChoiceString[0])) {
-		clear();
-		cout << '\n' << "Please choose one of the options" << '\n';
-		printStartMenu();
-	}
-	int userChoice = stoi(userChoiceString);
+	int userChoice;
+	cin >> userChoice;
 
 	switch (userChoice) {
 	case 0:
