@@ -100,7 +100,7 @@ void setStyleModern() {
 	system("color f0");
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
-	cfi.dwFontSize.Y = 24;
+	cfi.dwFontSize.Y = 22;
 	cfi.FontWeight = FW_BOLD;
 	wcscpy_s(cfi.FaceName, L"Consolas");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
@@ -600,7 +600,7 @@ void changeLoginDetails(AccountDetails& currentLoginDetails) {
 	cout << "CHANGE DETAILS";
 	line();
 
-	cout << '\n' << "Current login details" << '\n';
+	cout << "Current login details" << '\n';
 	cout << '\n' << "Username: " << currentLoginDetails.username << '\n';
 	cout << "Password: " << currentLoginDetails.password << '\n';
 	cout << '\n' << "Enter new login details" << '\n';
@@ -626,6 +626,7 @@ void printStudentDetails(StudentDetails& student) {
 	string teacherName;
 	string lastname;
 
+	cout << '\n' << printTableLine() << '\n';
 	cout << '\n';
 	// prints the category of each collumn
 	for (size_t i = 0; i < g_categories.size(); i++) {
@@ -654,7 +655,7 @@ void printStudentDetails(StudentDetails& student) {
 		<< column(to_string(student.chemistryGrade))
 		<< column(to_string(student.historyGrade))
 		<< column(to_string(student.overallGrade)) << '\n';
-
+	cout << printTableLine() << '\n';
 	// FYI: "column" and "title" functions set the column size
 }
 
@@ -757,7 +758,7 @@ TeacherDetails getNewTeacherDetails(int randomID) {
 	cout << "ADD TEACHER";
 	line();
 
-	cout << '\n' << "Choose the teacher's title" << '\n';
+	cout << "Choose the teacher's title" << '\n';
 	cout << '\n' << "[MR = 1] [MRS = 2] [MS = 3] [BACK = 0]" << '\n';
 	cin >> chooseTitle;
 
@@ -797,7 +798,7 @@ AccountDetails getNewAdminDetails() {
 	cout << "ADD ADMIN";
 	line();
 
-	cout << '\n' << "Enter new account details" << '\n';
+	cout << "Enter new account details" << '\n';
 	cout << '\n' << "Username: ";
 	cin >> newAccountDetails.username;
 	cout << "Password: ";
@@ -834,7 +835,7 @@ StudentDetails getNewStudentDetails(int randomID) {
 	cout << "ADD STUDENT";
 	line();
 
-	cout << '\n' << "Enter new student information" << '\n';
+	cout << "Enter new student information" << '\n';
 	cout << '\n' << "First name: ";
 	cin >> newStudentDetails.firstName;
 	cout << "Lastname: ";
@@ -1079,7 +1080,7 @@ void printAllStudents(vector<StudentDetails>& listOfStudents) {
 	vector<TeacherDetails> listOfTeachers = loadTeachers();
 	string teacherName;
 	string lastname;
-
+	cout << '\n' << printTableLine() << '\n';
 	cout << '\n';
 	// prints the category of each collumn
 	for (size_t i = 0; i < g_categories.size(); i++) {
@@ -1111,6 +1112,7 @@ void printAllStudents(vector<StudentDetails>& listOfStudents) {
 			<< column(to_string(student.historyGrade))
 			<< column(to_string(student.overallGrade)) << '\n';
 	}
+	cout << printTableLine() << '\n';
 
 	// FYI: "column" and "category" functions set the column size
 }
@@ -1176,7 +1178,7 @@ void getAdminMenuInput(AccountDetails& userAccountDetails) {
 	switch (userChoice) {
 	case 0:
 		clear();
-		cout << '\n' << "Logged out!" << '\n';
+		cout << '\n' << "Logged out!";
 		return;
 	case 1:
 		changeLoginDetails(userAccountDetails);
@@ -1213,7 +1215,7 @@ void printAdminMenu(AccountDetails& userAccountDetails) {
 	cout << "ADMIN DASHBOARD";
 	line();
 
-	cout << '\n' << "Here's the details of all students in the schools" << '\n';
+	cout << "All students in the school:";
 	printAllStudents(listOfStudents);
 	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [SELECT STUDENT = 2] [ADD STUDENT = 3] [ADD TEACHER = 4] [ADD ADMIN = 5] [LOG OUT = 0]" << '\n';
 
@@ -1344,6 +1346,7 @@ void printEditGradesMenu(StudentDetails& studentDetails) {
 }
 
 void printClassDetails(vector<StudentDetails>& listOfStudentsInClass, string teacherName) {
+	cout << '\n' << printTableLine() << '\n';
 	cout << '\n';
 	// prints the category of each collumn
 	for (size_t i = 0; i < g_categories.size(); i++) {
@@ -1366,7 +1369,7 @@ void printClassDetails(vector<StudentDetails>& listOfStudentsInClass, string tea
 			<< column(to_string(student.historyGrade))
 			<< column(to_string(student.overallGrade)) << '\n';
 	}
-
+	cout << printTableLine() << '\n';
 	// FYI: "column" and "category" functions set the column size
 }
 
@@ -1415,7 +1418,7 @@ void printTeacherMenu(AccountDetails& userAccountDetails) {
 	line();
 	cout << uppercase(teacherName) << "'S DASHBOARD";
 	line();
-	cout << '\n' << "Here's the details of the students in your class" << '\n';
+	cout <<"All students in your class:";
 	printClassDetails(listOfStudentsInClass, teacherName);
 	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [SELECT STUDENT = 2] [LOG OUT = 0]" << '\n';
 
@@ -1474,7 +1477,7 @@ void printStudentMenu(AccountDetails& userAccountDetails) {
 	cout << uppercase(userStudentDetails.firstName) << "'S DASHBOARD";
 	line();
 
-	cout << '\n' << "Here's your personal details" << '\n';
+	cout << "Personal details:";
 	printStudentDetails(userStudentDetails);
 	cout << '\n' << "[CHANGE LOGIN DETAILS = 1] [LOG OUT = 0]" << '\n';
 
@@ -1519,14 +1522,14 @@ AccountDetails printLoginMenuAndAuthenticate() {
 		line();
 		cout << "LOGIN";
 		line();
-		cout << '\n' << "Enter your details" << '\n';
+		cout << "Enter your details" << '\n';
 
 		vector<AccountDetails> listOfAccounts = loadAccounts();
 		AccountDetails userInputtedAccountDetails = getLoginDetailsInput();
 		authenticatedUserAccountDetails = authenticateUser(listOfAccounts, userInputtedAccountDetails);
 		if (authenticatedUserAccountDetails.isValid()) {
 			clear();
-			cout << '\n' << "Logged in!" << '\n';
+			cout << '\n' << "Logged in!";
 			return authenticatedUserAccountDetails;
 		}
 
@@ -1548,16 +1551,21 @@ void getThemeMenuInput() {
 		clear();
 		return;
 	case 1:
+		clear();
 		setStyleDefault();
 		break;
 	case 2:
+		clear();
 		setStyleModern();
 		break;
 	case 3:
+		clear();
 		setStyleClassic();
 		break;
 	case 4:
+		clear();
 		setStyleHacker();
+		break;
 	default:
 		clear();
 		cout << '\n' << "Please choose one of the options" << '\n';
@@ -1571,8 +1579,8 @@ void printThemeMenu() {
 	cout << "THEMES";
 	line();
 
-	cout << '\n' << "Choose theme" << '\n';
-	cout << '\n' << "[DEFAULT = 1] [MODERN = 2] [CLASSIC (BUGGY) = 3] [HACKER (BUGGY) = 4] [BACK = 0]" << '\n';
+	cout << "Choose theme" << '\n';
+	cout << '\n' << "[DEFAULT = 1] [MODERN = 2] [CLASSIC (UNSTABLE) = 3] [HACKER (UNSTABLE) = 4] [BACK = 0]" << '\n';
 
 	getThemeMenuInput();
 }
@@ -1614,13 +1622,13 @@ void printStartMenu() {
 	cout << "WELLINGTON HIGH SCHOOL STUDENT INFORMATION SYSTEM";
 	line();
 
-	cout << '\n' << "Please input the number to the following option" << '\n';
+	cout << "Please input the number to the following options" << '\n';
 	cout << '\n' << "[LOGIN = 1] [THEME = 2] [EXIT = 0]" << '\n';
 	getStartMenuInput();
 }
 
 int main() {
 	fullscreen();
-	setStyleDefault();
+	setStyleModern();
 	printStartMenu();
 }
