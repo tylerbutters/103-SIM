@@ -749,6 +749,23 @@ int chooseTeacher(vector<TeacherDetails>& listOfTeachers) {
 	return NULL;
 }
 
+AccountDetails findAccountWithID(int& accountID) {
+	vector<AccountDetails> listOfAccounts = loadAccounts();
+	AccountDetails inValid;
+
+	// loops through each student in database
+	for (AccountDetails account : listOfAccounts) {
+		// finds student ID which matches account ID
+
+		if (accountID == account.ID) {
+			return account;
+		}
+	}
+
+	// should never happen
+	return inValid;
+}
+
 TeacherDetails getNewTeacherDetails(int randomID) {
 	TeacherDetails newTeacherDetails;
 	int chooseTitle;
@@ -808,23 +825,6 @@ AccountDetails getNewAdminDetails() {
 	return newAccountDetails;
 }
 
-AccountDetails findAccountWithID(int& accountID) {
-	vector<AccountDetails> listOfAccounts = loadAccounts();
-	AccountDetails inValid;
-
-	// loops through each student in database
-	for (AccountDetails account : listOfAccounts) {
-		// finds student ID which matches account ID
-
-		if (accountID == account.ID) {
-			return account;
-		}
-	}
-
-	// should never happen
-	return inValid;
-}
-
 StudentDetails getNewStudentDetails(int randomID) {
 	StudentDetails newStudentDetails;
 	vector<TeacherDetails> listOfTeachers;
@@ -838,8 +838,9 @@ StudentDetails getNewStudentDetails(int randomID) {
 	cout << "Enter new student information" << '\n';
 	cout << '\n' << "First name: ";
 	cin >> newStudentDetails.firstName;
-	cout << "Lastname: ";
+	cout << "Last name: ";
 	cin >> newStudentDetails.lastName;
+
 	while (!isValid) {
 		cout << "Year (9 - 13): ";
 		cin >> newStudentDetails.yearNum;
@@ -849,6 +850,7 @@ StudentDetails getNewStudentDetails(int randomID) {
 		}
 		isValid = true;
 	}
+
 	cout << "Father: ";
 	cin >> newStudentDetails.fatherName;
 	cout << "Mother: ";
@@ -873,24 +875,41 @@ StudentDetails getNewStudentDetails(int randomID) {
 void addNewStudent(int& randomID) {
 	AccountDetails newAccountDetails;
 	StudentDetails newStudentDetails;
+	int confirm = 0;
 
 	line();
 	cout << "NEW STUDENT";
 	line();
 
 	newStudentDetails = getNewStudentDetails(randomID);
+	// should never happen
+	if (!newStudentDetails.isValid()) {
+		clear();
+		cout << '\n' << "Student not added";
+		return;
+	}
 	// sets up automatic account
 	newAccountDetails.username = newStudentDetails.firstName;
 	newAccountDetails.password = newStudentDetails.lastName;
 	newAccountDetails.ID = newStudentDetails.ID;
 	newAccountDetails.accountType = 1;
 
+	cout << '\n' << "Confirm new student?" << '\n';
+	cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
+	cin >> confirm;
+
+	if (confirm == 0) {
+		clear();
+		cout << '\n' << "Cancelled";
+		return;
+	}
+
 	writeNewStudentToFile(newStudentDetails);
 	writeNewAccountToFile(newAccountDetails);
 	clear();
 
-	cout << '\n' << "Student added!" << '\n';
-	cout << "Note: Student's default login details are their first name and last name. This can be changed later" << '\n';
+	cout << '\n' << "Student added!";
+	cout << '\n' << "Note: Student's default login details are their first name and last name. This can be changed later" << '\n';
 }
 
 void addNewAdmin() {
@@ -950,9 +969,10 @@ void addNewTeacher(int& randomID) {
 
 	clear();
 	cout << '\n' << "Teacher added!";
-	cout << "Note: Teacher's default login details are their first name and last name. This can be changed later";
+	cout << '\n' << "Note: Teacher's default login details are their first name and last name. This can be changed later";
 
 	writeNewTeacherToFile(newTeacherDetails);
+	writeNewAccountToFile(newAccountDetails);
 }
 
 void deleteStudent(StudentDetails& studentDetailsToDelete) {
@@ -1093,11 +1113,12 @@ bool printEditStudentMenu(StudentDetails& studentDetails) {
 			clear();
 			cout << '\n' << "Cancelled";
 			return true;
-		}
+		} 
 	}
 	editStudentDetail(newStudentDetails, studentDetails);
 	return false;
 }
+
 void printAllStudents(vector<StudentDetails>& listOfStudents) {
 	vector<TeacherDetails> listOfTeachers = loadTeachers();
 	string teacherName;
