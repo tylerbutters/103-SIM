@@ -74,7 +74,7 @@ const vector<string> g_categories = { "surname", "name", "year", "father", "moth
 void printTeacherMenu(AccountDetails& userAccountDetails);
 void printAdminMenu(AccountDetails& userAccountDetails);
 void printStudentMenu(AccountDetails& userAccountDetails);
-void printEditStudentMenu(StudentDetails& newStudentDetails);
+bool printEditStudentMenu(StudentDetails& newStudentDetails);
 void printEditGradesMenu(StudentDetails& studentDetails);
 void printEditOrDeleteMenu(StudentDetails studentDetails);
 void printEditGradesMenu(StudentDetails& studentDetails);
@@ -983,28 +983,29 @@ void editStudentDetail(StudentDetails newStudentDetails, StudentDetails currentS
 	cout << '\n' << "Student detail changed!" << '\n';
 }
 
-void getNewStudentDetailInput(StudentDetails currentStudentDetails) {
+StudentDetails getNewStudentDetailInput(StudentDetails currentStudentDetails) {
 	StudentDetails newStudentDetails = currentStudentDetails;
+	StudentDetails inValid;
 	int category;
 	string newDetail;
 
 	cin >> category;
 
-	if (category > g_categories.size()-1 || category < 0) {
+	if (category > g_categories.size() - 1 || category < 0) {
 		clear();
 		cout << '\n' << "Please choose one of the options";
-		return;
+		return inValid;
 	}
 	else if (category == 0) {
 		clear();
-		return;
+		return inValid;
 	}
 	else if (category == 6) {
 		vector<TeacherDetails> listOfTeachers = loadTeachers();
 		cout << '\n' << "Choose new teacher " << '\n' << '\n';
 		newStudentDetails.teacherID = chooseTeacher(listOfTeachers);
-		editStudentDetail(newStudentDetails, currentStudentDetails);
-		return;
+
+		return newStudentDetails;
 	}
 
 	cout << '\n' << "Enter new detail: ";
@@ -1044,14 +1045,15 @@ void getNewStudentDetailInput(StudentDetails currentStudentDetails) {
 	default:
 		clear();
 		cout << '\n' << "Please choose one of the options";
-		return;
 	}
 
-	editStudentDetail(newStudentDetails, currentStudentDetails);
+	
+	return newStudentDetails;
 }
 
-void printDeleteStudentMenu(StudentDetails studentDetails, string studentName) {
+bool printDeleteStudentMenu(StudentDetails studentDetails, string studentName) {
 	int confirm;
+
 	cout << '\n' << "Are you sure you want to delete " << studentName << "?" << '\n';
 	cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
 	cin >> confirm;
@@ -1059,23 +1061,43 @@ void printDeleteStudentMenu(StudentDetails studentDetails, string studentName) {
 	if (confirm == 0) {
 		clear();
 		cout << '\n' << "Cancelled";
-		printEditOrDeleteMenu(studentDetails);
+		return true;
 	}
 	deleteStudent(studentDetails);
+	return false;
 }
 
-void printEditStudentMenu(StudentDetails& studentDetails) {
-	cout << '\n' << "What do you want to edit?" << '\n' << '\n';
+bool printEditStudentMenu(StudentDetails& studentDetails) {
+	StudentDetails newStudentDetails;
+	bool shouldContinue = true;
+	int confirm =0;
 
-	for (size_t i = 0; i < g_categories.size() - 1; i++) {
-		cout << "[" << uppercase(g_categories[i]) << " = " << i + 1 << "] ";
+	while (confirm != 1) {
+		cout << '\n' << "What do you want to edit?" << '\n' << '\n';
+
+		for (size_t i = 0; i < g_categories.size() - 1; i++) {
+			cout << "[" << uppercase(g_categories[i]) << " = " << i + 1 << "] ";
+		}
+
+		cout << "[BACK = 0]" << '\n';
+
+		newStudentDetails = getNewStudentDetailInput(studentDetails);
+		if (!newStudentDetails.isValid()) {
+			return true;
+		}
+		cout << '\n' << "Confirm edit detail?" << '\n';
+		cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
+		cin >> confirm;
+
+		if (confirm == 0) {
+			clear();
+			cout << '\n' << "Cancelled";
+			return true;
+		}
 	}
-
-	cout << "[BACK = 0]" << '\n';
-
-	getNewStudentDetailInput(studentDetails);
+	editStudentDetail(newStudentDetails, studentDetails);
+	return false;
 }
-
 void printAllStudents(vector<StudentDetails>& listOfStudents) {
 	vector<TeacherDetails> listOfTeachers = loadTeachers();
 	string teacherName;
@@ -1119,6 +1141,7 @@ void printAllStudents(vector<StudentDetails>& listOfStudents) {
 
 void printEditOrDeleteMenu(StudentDetails studentDetails) {
 	vector<StudentDetails> listOfStudents = loadStudents();
+	bool shouldContinue = true;
 
 	string firstName = studentDetails.firstName;
 	string lastName = studentDetails.lastName;
@@ -1126,32 +1149,33 @@ void printEditOrDeleteMenu(StudentDetails studentDetails) {
 	lastName[0] = toupper(lastName[0]);
 	string studentName = firstName + " " + lastName; // TitleCase
 
-	line();
-	cout << uppercase(studentName) << "'S DETAILS";
-	line();
+	while (shouldContinue) {
+		line();
+		cout << uppercase(studentName) << "'S DETAILS";
+		line();
 
-	printStudentDetails(studentDetails);
+		printStudentDetails(studentDetails);
 
-	cout << '\n' << "What do you want to do?" << '\n';
-	cout << '\n' << "[EDIT = 1] [DELETE = 2] [BACK = 0]" << '\n';
+		cout << '\n' << "What do you want to do?" << '\n';
+		cout << '\n' << "[EDIT = 1] [DELETE = 2] [BACK = 0]" << '\n';
 
-	int userChoice;
-	cin >> userChoice;
+		int userChoice;
+		cin >> userChoice;
 
-	switch (userChoice) {
-	case 0:
-		clear();
-		return;
-	case 1:
-		printEditStudentMenu(studentDetails);
-		break;
-	case 2:
-		printDeleteStudentMenu(studentDetails, studentName);
-		break;
-	default:
-		clear();
-		cout << '\n' << "Please choose one of the options";
-		printEditOrDeleteMenu(studentDetails);
+		switch (userChoice) {
+		case 0:
+			clear();
+			return;
+		case 1:
+			shouldContinue = printEditStudentMenu(studentDetails);
+			break;
+		case 2:
+			shouldContinue = printDeleteStudentMenu(studentDetails, studentName);
+			break;
+		default:
+			clear();
+			cout << '\n' << "Please choose one of the options";
+		}
 	}
 }
 
@@ -1242,10 +1266,18 @@ TeacherDetails findTeacherWithID(int& accountID) {
 	return inValid;
 }
 
-StudentDetails getNewGradeInput(StudentDetails studentDetails, int chosenCategory) {
+StudentDetails getNewGradeInput(StudentDetails studentDetails) {
 	StudentDetails newStudentDetails = studentDetails;
 	StudentDetails inValid;
 	vector<StudentDetails> listOfStudents = loadStudents();
+
+	int chosenCategory;
+	cin >> chosenCategory;
+
+	if (chosenCategory == 0) {
+		clear();
+		return inValid;
+	}
 
 	cout << '\n' << "Enter new grade (0 - 20): ";
 
@@ -1290,31 +1322,27 @@ StudentDetails getNewGradeInput(StudentDetails studentDetails, int chosenCategor
 	return newStudentDetails;
 }
 
-void changeGrade(StudentDetails studentDetails) {
-	vector<StudentDetails> listOfStudents = loadStudents();
+bool changeGrade(StudentDetails studentDetails) {	
+	int confirm = 0;
+	StudentDetails newStudentDetails;
 
-	int chosenCategory;
-	cin >> chosenCategory;
+	while (confirm != 1) {
+		newStudentDetails = getNewGradeInput(studentDetails);
+		if (!newStudentDetails.isValid()) {
+			return false;
+		}
 
-	if (chosenCategory == 0) {
-		clear();
-		return;
-	}
+		cout << '\n' << "Confirm grade change?" << '\n';
+		cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
 
-	StudentDetails newStudentDetails = getNewGradeInput(studentDetails, chosenCategory);
-	if (!newStudentDetails.isValid()) {
-		return;
-	}
+		cin >> confirm;
 
-	cout << '\n' << "Confirm grade change?" << '\n';
-	cout << '\n' << "[YES = 1] [NO = 0]" << '\n';
-	int confirm;
-	cin >> confirm;
+		if (confirm == 0) {
+			clear();
+			cout << '\n' << "Cancelled";
 
-	if (confirm == 0) {
-		clear();
-		cout << '\n' << "Cancelled";
-		return;
+			return true;
+		}
 	}
 
 	vector<StudentDetails> newListOfStudents = loadNewStudentsAfterEdited(newStudentDetails, studentDetails);
@@ -1322,27 +1350,32 @@ void changeGrade(StudentDetails studentDetails) {
 	writeNewListOfStudentsToFile(newListOfStudents);
 
 	clear();
-	cout << '\n' << "Student grade changed!";
+	cout << '\n' << "Grade changed!";
+
+	return false;
 }
 
 void printEditGradesMenu(StudentDetails& studentDetails) {
 	string studentName = studentDetails.firstName + " " + studentDetails.lastName;
+	bool shouldContinue = true;
 
-	line();
-	cout << "EDIT " << uppercase(studentName) << "'S GRADES";
-	line();
+	while (shouldContinue) {
+		line();
+		cout << "EDIT " << uppercase(studentName) << "'S GRADES";
+		line();
 
-	printStudentDetails(studentDetails);
+		printStudentDetails(studentDetails);
 
-	cout << '\n' << "What do you want to edit?" << '\n' << '\n';
+		cout << '\n' << "What do you want to edit?" << '\n' << '\n';
 
-	// prints out only the reports as options
-	for (size_t i = 6; i < g_categories.size() - 1; i++) {
-		cout << "[" << uppercase(g_categories[i]) << " = " << i - 5 << "] ";;
+		// prints out only the reports as options
+		for (size_t i = 6; i < g_categories.size() - 1; i++) {
+			cout << "[" << uppercase(g_categories[i]) << " = " << i - 5 << "] ";;
+		}
+		cout << "[BACK = 0]" << '\n';
+
+		shouldContinue = changeGrade(studentDetails);
 	}
-	cout << "[BACK = 0]" << '\n';
-
-	changeGrade(studentDetails);
 }
 
 void printClassDetails(vector<StudentDetails>& listOfStudentsInClass, string teacherName) {
